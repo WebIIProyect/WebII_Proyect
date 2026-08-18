@@ -83,3 +83,26 @@ INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
     ('ALGORITMO_FIRMA', 'RSA-SHA256', 'Algoritmo usado por el módulo de firma digital'),
     ('MAX_INTENTOS_PIN', '5', 'Intentos fallidos de PIN antes de suspender al contribuyente')
 ON CONFLICT (clave) DO NOTHING;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- Módulo de Criptografía (Integrante 3 — /crypto)
+-- Tablas propias del módulo. Agregada en el punto 2 del checklist
+-- (HSM simulado / bóveda de llaves). Las otras dos tablas del módulo
+-- (Transacciones_Firma, Transacciones_Cifrado) se agregan en el punto 5.
+-- ═══════════════════════════════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS boveda_llaves_privadas (
+    id_boveda              SERIAL        PRIMARY KEY,
+    id_contribuyente       INTEGER       NOT NULL UNIQUE
+        REFERENCES contribuyentes(id_contribuyente) ON DELETE CASCADE,
+    llave_publica          TEXT          NOT NULL,
+    llave_privada_cifrada  TEXT          NOT NULL,
+    iv                     VARCHAR(64)   NOT NULL,
+    auth_tag               VARCHAR(64)   NOT NULL,
+    algoritmo              VARCHAR(30)   NOT NULL DEFAULT 'AES-256-GCM',
+    fecha_creacion         TIMESTAMP     NOT NULL DEFAULT NOW(),
+    fecha_actualizacion    TIMESTAMP     NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_boveda_llaves_id_contribuyente ON boveda_llaves_privadas(id_contribuyente);
+COMMENT ON TABLE boveda_llaves_privadas IS 'Bóveda de llaves privadas RSA de cada contribuyente. La llave privada nunca se guarda en claro: viaja cifrada con AES-256-GCM (iv y auth_tag guardados aparte para poder descifrar y verificar integridad). Administrada por el módulo /crypto.';
