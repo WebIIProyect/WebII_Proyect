@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proceso de Firma Digital - HSM Sign CR</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+
+  <body class="home-body">
+    <div class="hero-image-fade"></div>
+    <!--
+      HEADER =====================================================
+      Nota: HEADER
+      - Contiene la navegación principal (brand, links y botón de regreso).
+      - Se puede extraer a un include/partial en una app real.
+    -->
+    <header class="floating-header">
+      <nav class="navbar-pill">
+        <div class="brand-logo">HSM Sign CR</div>
+        <ul class="nav-links">
+          <li><a href="index.html"> Inicio </a></li>
+          <li><a href="information.html"> Información </a></li>
+        </ul>
+        <button
+          class="btn-auth-pill"
+          onclick="window.location.href = 'index.html'"
+        >
+          ← Regresar
+        </button>
+      </nav>
+    </header>
+
+    <!--
+      CONTENIDO PRINCIPAL =====================================================
+      Nota: este archivo implementa un wizard (5 pasos) para crear y
+      activar una firma digital. Muchas funciones están simuladas en el
+      cliente para demostración. Marcaré las simulaciones y añadiré un
+      esqueleto para integrar con un backend/HSM real (ej. POST /api/create-certificate).
+    -->
+    <main class="main-content-home contact-main">
+      <!--  VISTA INICIAL INFORMACIÓN GENERAL =================================================== -->
+      <div id="vista-inicio" class="view-section active">
+        <div class="hero-text">
+          <h1>Obtén tu Firma Digital</h1>
+          <p>
+            Una identidad digital segura para firmar documentos desde cualquier
+            lugar.
+          </p>
+        </div>
+        <div class="auth-container wizard-container">
+          <!-- IMAGEN -->
+          <section class="auth-image-section">
+            <img
+              src="../multimedia/utilitaria4.jpg"
+              alt="Firma Digital HSM Sign CR"
+              class="auth-img"
+            />
+            <div class="image-overlay-text">
+              <h2>HSM Sign CR</h2>
+              <p>
+                Tu identidad digital protegida mediante infraestructura HSM.
+              </p>
+            </div>
+          </section>
+          <!-- INFORMACIÓN -->
+          <section class="auth-form-section">
+            <div class="auth-header">
+              <h2>Transforma tus documentos hoy</h2>
+              <p class="auth-desc mt-12">
+                Con nuestra plataforma HSM Sign CR puedes obtener una identidad
+                digital para firmar contratos, facturas electrónicas y
+                documentos oficiales desde cualquier dispositivo.
+              </p>
+              <p class="auth-desc mt-10">
+                El proceso consiste en crear tu cuenta, registrar tus datos de
+                identificación, configurar tus credenciales de seguridad y
+                generar tu certificado digital.
+              </p>
+            </div>
+            <!-- BOTÓN PEQUEÑO -->
+            <!--
+              Este botón inicia la solicitud. En producción debe crear un
+              request al backend que inicie el flujo (crear usuario/solicitud).
+              Ejemplo: POST /api/start-request { email } → { requestId }
+            -->
+            <button
+              type="button"
+              class="btn-primary btn-wizard mt-22"
+              onclick="cambiarVista('vista-paso1')"
+            >
+              Iniciar solicitud →
+            </button>
+          </section>
+        </div>
+      </div>
+
+      <!--  PASO 1 CUENTA DE USUARIO =================================================== -->
+      <div id="vista-paso1" class="view-section">
+        <div class="hero-text">
+          <h1>Paso 1: Cuenta de Usuario</h1>
+          <p>
+            Crea las credenciales que utilizarás para acceder a HSM Sign CR.
+          </p>
+        </div>
+        <div class="auth-container wizard-container">
+          <!-- IMAGEN -->
+          <section class="auth-image-section">
+            <img
+              src="../multimedia/utilitaria4.jpg"
+              alt="Cuenta de usuario"
+              class="auth-img"
+            />
+            <div class="image-overlay-text">
+              <h2>Paso 1 de 5</h2>
+              <p>
+                Estas credenciales serán utilizadas para iniciar sesión en la
+                plataforma.
+              </p>
+            </div>
+          </section>
+          <!-- FORMULARIO -->
+          <section class="auth-form-section">
+            <!-- PROGRESO -->
+            <div class="progress-container">
+              <div class="progress-step-circle active">1</div>
+              <div class="progress-step-circle">2</div>
+              <div class="progress-step-circle">3</div>
+              <div class="progress-step-circle">4</div>
+              <div class="progress-step-circle">5</div>
+            </div>
+            <div class="auth-header">
+              <h3>Crea tu cuenta</h3>
+              <p class="auth-sub-header">
+                Utiliza un correo electrónico al que tengas acceso. Estas
+                credenciales son independientes del PIN que utilizarás
+                posteriormente para firmar.
+              </p>
+            </div>
+            <form class="auth-form" onsubmit="event.preventDefault()">
+              <!--
+                NOTA: Los formularios aquí son demostrativos y no envían datos.
+                Para integración real, asignar IDs a los inputs y acumular
+                los datos en un objeto que se envíe al backend en cada paso
+                o al finalizar el wizard.
+              -->
+              <div class="form-group">
+                <label> Correo electrónico </label>
+                <input type="email" placeholder="usuario@correo.com" required />
+              </div>
+              <div class="form-group">
+                <label> Contraseña de acceso </label>
+                <input type="password" placeholder="••••••••" required />
+              </div>
+              <button
+                type="button"
+                class="btn-primary btn-wizard mt-15"
+                onclick="cambiarVista('vista-paso2')"
+              >
+                Continuar →
+              </button>
+            </form>
+          </section>
+        </div>
+      </div>
+
+      <!--  PASO 2 DATOS DEL CONTRIBUYENTE =================================================== -->
+      <div id="vista-paso2" class="view-section">
+        <div class="hero-text">
+          <h1>Paso 2: Datos de Identificación</h1>
+          <p>
+            Necesitamos identificar correctamente al contribuyente que recibirá
+            el certificado digital.
+          </p>
+        </div>
+        <div class="auth-container wizard-container">
+          <!-- IMAGEN -->
+          <section class="auth-image-section">
+            <img
+              src="../multimedia/utilitaria4.jpg"
+              alt="Identificación del contribuyente"
+              class="auth-img"
+            />
+            <div class="image-overlay-text">
+              <h2>Paso 2 de 5</h2>
+              <p>
+                Información utilizada para identificar al titular de la firma
+                digital.
+              </p>
+            </div>
+          </section>
+          <!-- FORMULARIO -->
+          <section class="auth-form-section">
+            <!-- PROGRESO -->
+            <div class="progress-container">
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle active">2</div>
+              <div class="progress-step-circle">3</div>
+              <div class="progress-step-circle">4</div>
+              <div class="progress-step-circle">5</div>
+            </div>
+            <div class="auth-header">
+              <h3>Información del contribuyente</h3>
+              <p class="auth-sub-header">
+                Ingresa la información exactamente como aparece en tu documento
+                oficial.
+              </p>
+            </div>
+            <form class="auth-form" onsubmit="event.preventDefault()">
+              <!-- TIPO DE CONTRIBUYENTE -->
+              <div class="form-group">
+                <label> Tipo de identificación </label>
+                <select
+                  class="contact-select"
+                  id="tipoIdentificacion"
+                  onchange="mostrarDatosJuridicos()"
+                >
+                  <option value="fisica">Persona Física</option>
+                  <option value="juridica">Persona Jurídica</option>
+                </select>
+              </div>
+              <!-- TIPO Y NÚMERO -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label> Tipo de documento </label>
+                  <select class="contact-select">
+                    <option>Cédula Nacional</option>
+                    <option>DIMEX</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label> Número de identificación </label>
+                  <input type="text" placeholder="Ej: 101230456" required />
+                </div>
+              </div>
+              <!-- NOMBRE -->
+              <div class="form-group">
+                <label> Nombre completo </label>
+                <input
+                  type="text"
+                  placeholder="Tal como aparece en el documento"
+                  required
+                />
+              </div>
+              <!-- FECHA -->
+              <div class="form-group">
+                <label> Fecha de nacimiento </label>
+                <input type="date" required />
+              </div>
+              <!-- CORREO -->
+              <div class="form-group">
+                <label> Correo electrónico </label>
+                <input type="email" placeholder="usuario@correo.com" required />
+              </div>
+              <!-- TELÉFONO -->
+              <div class="form-group">
+                <label> Teléfono móvil </label>
+                <input type="tel" placeholder="Ej: 8888-8888" required />
+              </div>
+              <!-- DATOS JURÍDICOS -->
+              <div id="datosJuridicos" class="hidden">
+                <div class="form-group">
+                  <label> Razón social </label>
+                  <input type="text" placeholder="Nombre legal de la empresa" />
+                </div>
+                <div class="form-group">
+                  <label> Número de identificación tributaria </label>
+                  <input type="text" placeholder="Número tributario" />
+                </div>
+                <div class="form-group">
+                  <label> Representante legal </label>
+                  <input
+                    type="text"
+                    placeholder="Nombre completo del representante legal"
+                  />
+                </div>
+              </div>
+              <!-- BOTÓN -->
+              <button
+                type="button"
+                class="btn-primary btn-wizard mt-15"
+                onclick="cambiarVista('vista-paso3')"
+              >
+                Continuar →
+              </button>
+            </form>
+          </section>
+        </div>
+      </div>
+
+      <!--  PASO 3 SEGURIDAD Y PIN =================================================== -->
+      <div id="vista-paso3" class="view-section">
+        <div class="hero-text">
+          <h1>Paso 3: Seguridad de tu Firma</h1>
+          <p>
+            Configura las credenciales que protegerán el uso de tu certificado
+            digital.
+          </p>
+        </div>
+        <div class="auth-container wizard-container">
+          <!-- IMAGEN -->
+          <section class="auth-image-section">
+            <img
+              src="../multimedia/utilitaria4.jpg"
+              alt="Seguridad de firma digital"
+              class="auth-img"
+            />
+            <div class="image-overlay-text">
+              <h2>Paso 3 de 5</h2>
+              <p>
+                Tu PIN de firma es diferente de la contraseña utilizada para
+                iniciar sesión.
+              </p>
+            </div>
+          </section>
+          <!-- FORMULARIO -->
+          <section class="auth-form-section">
+            <!-- PROGRESO -->
+            <div class="progress-container">
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle active">3</div>
+              <div class="progress-step-circle">4</div>
+              <div class="progress-step-circle">5</div>
+            </div>
+            <div class="auth-header">
+              <h3>Protege tu identidad digital</h3>
+              <p class="auth-sub-header">
+                La contraseña de acceso y el PIN de firma cumplen funciones
+                diferentes. El PIN será solicitado cuando realices una operación
+                de firma digital.
+              </p>
+            </div>
+            <form class="auth-form" onsubmit="event.preventDefault()">
+              <!-- CONTRASEÑA -->
+              <div class="form-group">
+                <label> Confirmar contraseña de acceso </label>
+                <input type="password" placeholder="••••••••" required />
+              </div>
+              <!-- PIN -->
+              <div class="form-group">
+                <label> PIN de firma </label>
+                <input
+                  type="password"
+                  placeholder="Entre 8 y 16 caracteres"
+                  minlength="8"
+                  maxlength="16"
+                  required
+                />
+              </div>
+              <!-- CONFIRMAR PIN -->
+              <div class="form-group">
+                <label> Confirmar PIN de firma </label>
+                <input
+                  type="password"
+                  placeholder="Repite tu PIN de firma"
+                  minlength="8"
+                  maxlength="16"
+                  required
+                />
+              </div>
+              <!-- REQUISITOS -->
+              <div class="info-box-light">
+                <p class="info-box-title">Requisitos del PIN</p>
+                <p class="info-box-text">
+                  • Entre 8 y 16 caracteres.<br />
+                  • Al menos una letra mayúscula.<br />
+                  • Al menos una letra minúscula.<br />
+                  • Al menos un número.<br />
+                  • Al menos un símbolo.
+                </p>
+              </div>
+              <p class="auth-note">
+                Por seguridad, después de tres intentos incorrectos el acceso
+                para firmar será bloqueado temporalmente durante 15 minutos.
+              </p>
+              <!-- INFORMACIÓN HSM -->
+              <div class="info-box-blue">
+                <p class="info-box-blue-text">
+                  Tu llave privada será protegida dentro de la infraestructura
+                  HSM. El PIN se utilizará para autorizar las operaciones de
+                  firma y no sustituye tu contraseña de acceso.
+                </p>
+              </div>
+              <!-- BOTÓN -->
+              <button
+                type="button"
+                class="btn-primary btn-wizard mt-20"
+                onclick="simularEspera()"
+              >
+                Continuar →
+              </button>
+            </form>
+          </section>
+        </div>
+      </div>
+
+      <!--  PASO 4 PROCESANDO =================================================== -->
+      <div id="vista-paso4" class="view-section">
+        <div class="hero-text">
+          <h1>Paso 4: Procesando tu solicitud</h1>
+          <p>
+            Estamos preparando tu certificado digital y configurando tu
+            infraestructura de seguridad.
+          </p>
+        </div>
+        <div class="auth-container wizard-container">
+          <!-- IMAGEN -->
+          <section class="auth-image-section">
+            <img
+              src="../multimedia/utilitaria4.jpg"
+              alt="Procesamiento de certificado digital"
+              class="auth-img"
+            />
+            <div class="image-overlay-text">
+              <h2>Paso 4 de 5</h2>
+              <p>
+                El sistema verifica tu información y prepara tu identidad
+                criptográfica.
+              </p>
+            </div>
+          </section>
+          <!-- INFORMACIÓN -->
+          <section class="auth-form-section">
+            <!-- PROGRESO -->
+            <div class="progress-container">
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle active">4</div>
+              <div class="progress-step-circle">5</div>
+            </div>
+            <div class="auth-header">
+              <h3>Estamos preparando tu certificado</h3>
+              <p class="auth-desc mt-12">
+                El sistema verificará que no exista otro contribuyente
+                registrado con el mismo número de identificación.
+              </p>
+              <p class="auth-desc mt-10">
+                Después se generará el par de llaves criptográficas y se
+                preparará el certificado digital asociado a tu identidad.
+              </p>
+            </div>
+            <!-- INDICADOR -->
+            <div class="processing-container">
+              <div class="processing-icon">⏳</div>
+              <p class="processing-text">Procesando de forma segura...</p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- PASO 5 FIRMA ACTIVADA =================================================== -->
+      <div id="vista-paso5" class="view-section">
+        <div class="hero-text">
+          <h1>Paso 5: Firma Digital Activada</h1>
+          <p>Tu certificado digital está listo para utilizarse.</p>
+        </div>
+        <div class="auth-container wizard-container">
+          <!-- IMAGEN -->
+          <section class="auth-image-section">
+            <img
+              src="../multimedia/utilitaria4.jpg"
+              alt="Firma Digital activada"
+              class="auth-img"
+            />
+            <div class="image-overlay-text">
+              <h2>Paso 5 de 5</h2>
+              <p>
+                Tu identidad digital está protegida dentro de la infraestructura
+                HSM.
+              </p>
+            </div>
+          </section>
+          <!-- INFORMACIÓN -->
+          <section class="auth-form-section">
+            <!-- PROGRESO -->
+            <div class="progress-container">
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle completed">✓</div>
+              <div class="progress-step-circle active">5</div>
+            </div>
+            <div class="auth-header">
+              <div class="success-icon">✓</div>
+              <h2>¡Tu Firma Digital está lista!</h2>
+              <p class="auth-desc mt-12">
+                Tu certificado digital ha sido generado y asociado a tu
+                identidad. La llave privada permanecerá protegida dentro de la
+                infraestructura HSM.
+              </p>
+              <p class="auth-desc mt-10">
+                Ahora podrás utilizar tu certificado para firmar documentos y
+                facturas electrónicas desde la plataforma.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="btn-primary btn-wizard mt-20"
+              onclick="finalizarProceso()"
+            >
+              Ir a Mi Cuenta →
+            </button>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER ===================================================== -->
+    <footer class="minimal-footer">
+      <p>© 2026 HSM Sign CR. Infraestructura PKI en la Nube.</p>
+    </footer>
+
+    <!-- JAVASCRIPT ===================================================== -->
+    <script>
+      /*  CAMBIO DE VISTAS ===================================================== */
+      function cambiarVista(idVistaDestino) {
+        const vistas = document.querySelectorAll(".view-section");
+        vistas.forEach((vista) => {
+          vista.classList.remove("active");
+        });
+        const destino = document.getElementById(idVistaDestino);
+        if (destino) {
+          destino.classList.add("active");
+        }
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      /*  MOSTRAR / OCULTAR DATOS JURÍDICOS ===================================================== */
+      function mostrarDatosJuridicos() {
+        const tipo = document.getElementById("tipoIdentificacion");
+        const datos = document.getElementById("datosJuridicos");
+        if (!tipo || !datos) {
+          return;
+        }
+        if (tipo.value === "juridica") {
+          datos.classList.remove("hidden"); // Utilizamos la clase del CSS
+        } else {
+          datos.classList.add("hidden"); // Utilizamos la clase del CSS
+        }
+      }
+
+      /*  SIMULAR PROCESAMIENTO ===================================================== */
+      function simularEspera() {
+        cambiarVista("vista-paso4");
+        /*
+         * SIMULACIÓN (UX):
+         * - Esta función simula el procesamiento del backend para el demo.
+         * - En producción, reemplazar por `procesarSolicitudFirmaReal()` que
+         *   enviará los datos recopilados al backend/HSM y esperará la
+         *   confirmación de emisión del certificado.
+         */
+        setTimeout(() => {
+          cambiarVista("vista-paso5");
+        }, 3000);
+      }
+
+      /*
+        ESQUEMA SUGERIDO: procesarSolicitudFirmaReal
+        - Reemplazar la simulación por esta función cuando exista un
+          endpoint real.
+        - Flujo recomendado:
+          1) Recolectar los datos de los pasos (email, identificación, PIN, etc.).
+          2) POST a /api/create-certificate o endpoint equivalente con JSON/FormData.
+          3) Backend realiza verificaciones, llama al HSM y devuelve resultado.
+          4) En caso de éxito, mostrar paso 5; en error, mostrar mensaje.
+
+        Ejemplo mínimo (esqueleto):
+      */
+      async function procesarSolicitudFirmaReal(collectedData) {
+        // collectedData: objeto con los campos recolectados del wizard
+        // Ejemplo: { email, password, tipoIdentificacion, numero, nombre, dob, phone, pin }
+        try {
+          // Mostrar pantalla de procesamiento
+          cambiarVista('vista-paso4');
+
+          // Construir payload - usar FormData si hay archivos, o JSON para solo datos
+          const payload = collectedData; // ajustar antes de enviar
+
+          // NOTE: cambiar URL por la real de su backend/HSM
+          const res = await fetch('/api/create-certificate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            credentials: 'include'
+          });
+
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || 'Error en la creación de certificado');
+          }
+
+          const data = await res.json();
+
+          // data esperado: { success: true, certificateId, message }
+          if (data.success) {
+            // Mostrar paso 5 (éxito) y opcionalmente almacenar certificateId
+            cambiarVista('vista-paso5');
+          } else {
+            // Manejar errores específicos devueltos por el API
+            alert('No se pudo emitir la firma: ' + (data.message || 'Error desconocido'));
+            cambiarVista('vista-inicio');
+          }
+        } catch (err) {
+          alert('Error al procesar la solicitud: ' + (err.message || err));
+          cambiarVista('vista-inicio');
+        }
+      }
+
+      /* FINALIZAR ===================================================== */
+      function finalizarProceso() {
+        alert(
+          "¡Proceso finalizado con éxito! Tu firma digital ha sido emitida y vinculada a tu bóveda HSM.",
+        );
+        cambiarVista("vista-inicio");
+      }
+    </script>
+  </body>
+</html>
