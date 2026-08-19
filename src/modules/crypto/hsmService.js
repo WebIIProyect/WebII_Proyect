@@ -86,16 +86,39 @@ function descifrarLlavePrivada({ llavePrivadaCifrada, iv, authTag }) {
  * @returns {Promise<object>} la fila insertada/actualizada (sin el material cifrado).
  */
 async function guardarLlaveEnBoveda(idContribuyente, llavePublica, llavePrivadaPem) {
-  const { llavePrivadaCifrada, iv, authTag, algoritmo } = cifrarLlavePrivada(llavePrivadaPem);
+  try {
+    const { llavePrivadaCifrada, iv, authTag, algoritmo } = cifrarLlavePrivada(llavePrivadaPem);
 
-  return queries.guardarLlaveEnBoveda({
-    idContribuyente,
-    llavePublica,
-    llavePrivadaCifrada,
-    iv,
-    authTag,
-    algoritmo,
-  });
+    const fila = await queries.guardarLlaveEnBoveda({
+      idContribuyente,
+      llavePublica,
+      llavePrivadaCifrada,
+      iv,
+      authTag,
+      algoritmo,
+    });
+
+    await queries.registrarTransaccionCifrado({
+      idContribuyente,
+      operacion: 'CIFRADO',
+      algoritmo,
+      resultado: 'EXITOSA',
+    });
+
+    return fila;
+  } catch (error) {
+    // Best-effort: si el registro de la transacción fallida también falla,
+    // no queremos que ESE error tape el error original del cifrado/guardado.
+    await queries
+      .registrarTransaccionCifrado({
+        idContribuyente,
+        operacion: 'CIFRADO',
+        resultado: 'FALLIDA',
+        detalleError: error.message,
+      })
+      .catch(() => {});
+    throw error;
+  }
 }
 
 /**
@@ -110,21 +133,44 @@ async function guardarLlaveEnBoveda(idContribuyente, llavePublica, llavePrivadaP
  * @returns {Promise<{ llavePublica: string, llavePrivadaBuffer: Buffer }>}
  */
 async function cargarLlaveTemporalmente(idContribuyente) {
-  const registro = await queries.obtenerLlaveDeBoveda(idContribuyente);
-  if (!registro) {
-    throw new Error(`No existe llave en la bóveda para el contribuyente ${idContribuyente}.`);
+  try {
+    const registro = await queries.obtenerLlaveDeBoveda(idContribuyente);
+    if (!registro) {
+      throw new Error(`No existe llave en la bóveda para el contribuyente ${idContribuyente}.`);
+    }
+
+    const llavePrivadaBuffer = descifrarLlavePrivada({
+      llavePrivadaCifrada: registro.llave_privada_cifrada,
+      iv: registro.iv,
+      authTag: registro.auth_tag,
+    });
+
+    await queries.registrarTransaccionCifrado({
+      idContribuyente,
+      operacion: 'DESCIFRADO',
+      algoritmo: registro.algoritmo,
+      resultado: 'EXITOSA',
+    });
+
+    return {
+      llavePublica: registro.llave_publica,
+      llavePrivadaBuffer,
+    };
+  } catch (error) {
+    // Best-effort, mismo criterio que en guardarLlaveEnBoveda: un intento de
+    // descifrado fallido (ej. dato manipulado, GCM rechaza el authTag) SÍ se
+    // quiere dejar en el registro — es justo el tipo de evento que interesa
+    // para auditoría/seguridad.
+    await queries
+      .registrarTransaccionCifrado({
+        idContribuyente,
+        operacion: 'DESCIFRADO',
+        resultado: 'FALLIDA',
+        detalleError: error.message,
+      })
+      .catch(() => {});
+    throw error;
   }
-
-  const llavePrivadaBuffer = descifrarLlavePrivada({
-    llavePrivadaCifrada: registro.llave_privada_cifrada,
-    iv: registro.iv,
-    authTag: registro.auth_tag,
-  });
-
-  return {
-    llavePublica: registro.llave_publica,
-    llavePrivadaBuffer,
-  };
 }
 
 /**

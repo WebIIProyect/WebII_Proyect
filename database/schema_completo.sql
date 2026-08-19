@@ -87,11 +87,10 @@ ON CONFLICT (clave) DO NOTHING;
 
 -- ═══════════════════════════════════════════════════════════════
 -- Módulo de Criptografía (Integrante 3 — /crypto)
--- Tablas propias del módulo. Agregada en el punto 2 del checklist
--- (HSM simulado / bóveda de llaves). Las otras dos tablas del módulo
--- (Transacciones_Firma, Transacciones_Cifrado) se agregan en el punto 5.
+-- Tablas propias del módulo.
 -- ═══════════════════════════════════════════════════════════════
 
+-- Punto 2 del checklist: HSM simulado / bóveda de llaves.
 CREATE TABLE IF NOT EXISTS boveda_llaves_privadas (
     id_boveda              SERIAL        PRIMARY KEY,
     id_contribuyente       INTEGER       NOT NULL UNIQUE
@@ -106,3 +105,39 @@ CREATE TABLE IF NOT EXISTS boveda_llaves_privadas (
 );
 CREATE INDEX IF NOT EXISTS idx_boveda_llaves_id_contribuyente ON boveda_llaves_privadas(id_contribuyente);
 COMMENT ON TABLE boveda_llaves_privadas IS 'Bóveda de llaves privadas RSA de cada contribuyente. La llave privada nunca se guarda en claro: viaja cifrada con AES-256-GCM (iv y auth_tag guardados aparte para poder descifrar y verificar integridad). Administrada por el módulo /crypto.';
+
+-- Punto 5 del checklist: registro de transacciones.
+-- fecha_hora usa TIMESTAMPTZ (no TIMESTAMP): Postgres normaliza y guarda
+-- internamente en UTC sin importar la zona horaria del servidor, así un
+-- solo campo cubre "fecha + hora + UTC" sin ambigüedad, sin necesidad de
+-- guardar la zona horaria aparte.
+CREATE TABLE IF NOT EXISTS transacciones_firma (
+    id_transaccion_firma  SERIAL        PRIMARY KEY,
+    id_contribuyente      INTEGER       NOT NULL
+        REFERENCES contribuyentes(id_contribuyente) ON DELETE CASCADE,
+    serial_certificado    VARCHAR(100)  NOT NULL,
+    hash_documento         VARCHAR(64)   NOT NULL,
+    resultado               VARCHAR(10)   NOT NULL DEFAULT 'EXITOSA'
+        CHECK (resultado IN ('EXITOSA', 'FALLIDA')),
+    detalle_error           VARCHAR(255),
+    fecha_hora               TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_transacciones_firma_id_contribuyente ON transacciones_firma(id_contribuyente);
+CREATE INDEX IF NOT EXISTS idx_transacciones_firma_fecha_hora       ON transacciones_firma(fecha_hora);
+COMMENT ON TABLE transacciones_firma IS 'Registro de cada operación de firma de factura (exitosa o fallida): fecha/hora en UTC, hash SHA-256 del documento firmado y serial del certificado usado. Administrada por el módulo /crypto.';
+
+CREATE TABLE IF NOT EXISTS transacciones_cifrado (
+    id_transaccion_cifrado  SERIAL        PRIMARY KEY,
+    id_contribuyente        INTEGER       NOT NULL
+        REFERENCES contribuyentes(id_contribuyente) ON DELETE CASCADE,
+    operacion                 VARCHAR(10)   NOT NULL
+        CHECK (operacion IN ('CIFRADO', 'DESCIFRADO')),
+    algoritmo                 VARCHAR(30)   NOT NULL DEFAULT 'AES-256-GCM',
+    resultado                  VARCHAR(10)   NOT NULL DEFAULT 'EXITOSA'
+        CHECK (resultado IN ('EXITOSA', 'FALLIDA')),
+    detalle_error              VARCHAR(255),
+    fecha_hora                  TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_transacciones_cifrado_id_contribuyente ON transacciones_cifrado(id_contribuyente);
+CREATE INDEX IF NOT EXISTS idx_transacciones_cifrado_fecha_hora       ON transacciones_cifrado(fecha_hora);
+COMMENT ON TABLE transacciones_cifrado IS 'Registro de cada operación de cifrado/descifrado de una llave privada en la bóveda del HSM simulado (exitosa o fallida). Administrada por el módulo /crypto.';

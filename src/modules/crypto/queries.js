@@ -1,9 +1,7 @@
 /**
  * queries.js — módulo /crypto
- * Acceso a la tabla `boveda_llaves_privadas` (bóveda de llaves).
- *
- * `Transacciones_Firma` y `Transacciones_Cifrado` NO se incluyen aquí todavía:
- * corresponden al punto 5 del checklist (registro de transacciones).
+ * Acceso a mis 3 tablas: `boveda_llaves_privadas`, `transacciones_firma` y
+ * `transacciones_cifrado`.
  */
 
 const pool = require('../../config/db.js');
@@ -71,7 +69,97 @@ async function obtenerLlaveDeBoveda(idContribuyente) {
   return rows[0] || null;
 }
 
+/**
+ * Registra una operación de firma (exitosa o fallida) en `transacciones_firma`.
+ * Ver Flujo B en CLAUDE.md: cada vez que se firma una factura debe quedar
+ * fecha/hora (UTC), hash del documento y serial del certificado usado.
+ *
+ * @param {object} datos
+ * @param {number} datos.idContribuyente
+ * @param {string} datos.serialCertificado - serial del certificado usado (lo entrega /certificate).
+ * @param {string} datos.hashDocumento - hash SHA-256 (hex) del XML firmado (ver `hashService`).
+ * @param {'EXITOSA'|'FALLIDA'} [datos.resultado='EXITOSA']
+ * @param {string} [datos.detalleError] - mensaje de error, solo si resultado='FALLIDA'.
+ * @returns {Promise<object>} la fila insertada.
+ */
+async function registrarTransaccionFirma({
+  idContribuyente,
+  serialCertificado,
+  hashDocumento,
+  resultado = 'EXITOSA',
+  detalleError = null,
+}) {
+  const { rows } = await pool.query(
+    `
+    INSERT INTO transacciones_firma
+      (id_contribuyente, serial_certificado, hash_documento, resultado, detalle_error)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id_transaccion_firma, id_contribuyente, serial_certificado, resultado, fecha_hora
+    `,
+    [idContribuyente, serialCertificado, hashDocumento, resultado, detalleError]
+  );
+
+  return rows[0];
+}
+
+/**
+ * Historial de firmas de un contribuyente, más recientes primero (útil para
+ * "Mi Cuenta > Ver historial de firmas" en el frontend, y para auditoría).
+ *
+ * @param {number} idContribuyente
+ * @returns {Promise<object[]>}
+ */
+async function obtenerTransaccionesFirmaPorContribuyente(idContribuyente) {
+  const { rows } = await pool.query(
+    `
+    SELECT id_transaccion_firma, serial_certificado, hash_documento, resultado, detalle_error, fecha_hora
+    FROM transacciones_firma
+    WHERE id_contribuyente = $1
+    ORDER BY fecha_hora DESC
+    `,
+    [idContribuyente]
+  );
+
+  return rows;
+}
+
+/**
+ * Registra una operación de cifrado o descifrado (exitosa o fallida) en
+ * `transacciones_cifrado` — se usa cada vez que el HSM simulado cifra una
+ * llave antes de guardarla, o la descifra para cargarla temporalmente.
+ *
+ * @param {object} datos
+ * @param {number} datos.idContribuyente
+ * @param {'CIFRADO'|'DESCIFRADO'} datos.operacion
+ * @param {string} [datos.algoritmo='AES-256-GCM']
+ * @param {'EXITOSA'|'FALLIDA'} [datos.resultado='EXITOSA']
+ * @param {string} [datos.detalleError] - mensaje de error, solo si resultado='FALLIDA'.
+ * @returns {Promise<object>} la fila insertada.
+ */
+async function registrarTransaccionCifrado({
+  idContribuyente,
+  operacion,
+  algoritmo = 'AES-256-GCM',
+  resultado = 'EXITOSA',
+  detalleError = null,
+}) {
+  const { rows } = await pool.query(
+    `
+    INSERT INTO transacciones_cifrado
+      (id_contribuyente, operacion, algoritmo, resultado, detalle_error)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id_transaccion_cifrado, id_contribuyente, operacion, resultado, fecha_hora
+    `,
+    [idContribuyente, operacion, algoritmo, resultado, detalleError]
+  );
+
+  return rows[0];
+}
+
 module.exports = {
   guardarLlaveEnBoveda,
   obtenerLlaveDeBoveda,
+  registrarTransaccionFirma,
+  obtenerTransaccionesFirmaPorContribuyente,
+  registrarTransaccionCifrado,
 };
