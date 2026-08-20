@@ -52,10 +52,13 @@ const crypto = require('../modules/crypto'); // ajustar la ruta según desde dó
 - **`cifrarLlavePrivada(pem)` / `descifrarLlavePrivada(datos)`** — las piezas de cifrado puras, sin tocar la BD. Normalmente no hace falta llamarlas directo; están para pruebas o casos especiales.
 
 ### `crypto.firma`
-- **`firmarXML(xmlFactura, llavePrivada)`** → `string` (el XML con `<Signature>` insertado). `llavePrivada` acepta string o `Buffer`. Lanza error si el XML no está bien formado (ver nota de seguridad abajo) o si falta algún parámetro. **No** verifica el PIN, no carga la llave, no registra nada — solo firma.
+- **`firmarXML(xmlFactura, llavePrivada)`** → `string` (el XML con `<Signature>` insertado). `llavePrivada` acepta string o `Buffer`. Lanza error si el XML no está bien formado (ver nota de seguridad abajo) o si falta algún parámetro. **No** verifica el PIN, no carga la llave, no registra nada — solo firma. La llave pública correspondiente se deriva automáticamente y se embebe en `<KeyInfo>` (formato `RSAKeyValue`) — el documento queda "autodescriptivo", no hace falta mandar la llave pública aparte para poder validarlo.
+- **`construirKeyInfoRSA(llave)`** → `string`. Genera el XML de `<KeyValue>` a partir de una llave pública o privada. Normalmente no hace falta llamarla directo, la usa `firmarXML` internamente.
 
 ### `crypto.validarFirma`
-- **`validarFirmaXML(xmlFirmado, llavePublica)`** → `{ esValida: boolean, motivo?: string }`. Nunca lanza excepción por una firma inválida — siempre responde con el objeto. Solo valida la matemática de la firma, no si el certificado sigue vigente (eso es de `/certificate`).
+- **`validarFirmaXML(xmlFirmado, llavePublicaEsperada?)`** → `{ esValida: boolean, motivo?: string, origenLlave: 'proporcionada'|'keyInfo' }`. Nunca lanza excepción por una firma inválida — siempre responde con el objeto. Solo valida la matemática de la firma, no si el certificado sigue vigente (eso es de `/certificate`). Dos modos:
+  - **Con `llavePublicaEsperada`** (modo fuerte, recomendado en `/api`): valida contra una llave específica, ej. la guardada en la bóveda para el contribuyente que dice haber firmado. Es el único modo que de verdad confirma identidad.
+  - **Sin `llavePublicaEsperada`**: extrae la llave del propio `<KeyInfo>` del documento. Solo confirma que nadie tocó el documento después de firmarlo — **no** confirma que esa llave sea de quien dice ser (cualquiera puede firmar con su propia llave y "pasar" este modo). Ver la nota de seguridad más abajo.
 
 ### `crypto.pin`
 - **`validarPoliticaPin(pin)`** → `{ valido: boolean, motivo?: string }`. Política: 8-16 caracteres, 1 mayúscula, 1 minúscula, 1 número, 1 símbolo.
@@ -165,3 +168,4 @@ sistema:
 - **AES-256-GCM es autenticado**: si alguien manipula el ciphertext guardado en la bóveda, `descifrarLlavePrivada` lanza error en vez de devolver datos corruptos (probado).
 - **`firmarXML` rechaza XML mal formado** en vez de firmar una versión "reparada" por el parser en silencio — esto se descubrió probando el módulo (ver historial de la sesión que implementó el punto 3).
 - **Cada operación de cifrado/descifrado y de firma queda registrada**, tanto si sale bien como si falla — útil para detectar intentos de manipulación.
+- **`validarFirmaXML` sin llave esperada NO prueba identidad, solo integridad.** El documento trae su llave pública embebida (`<KeyInfo>`) para que se pueda validar sin ir a buscarla aparte, pero eso solo confirma que el documento no fue alterado después de firmarse con ESA llave — no que ESA llave sea de quien dice ser. Cualquiera podría firmar con su propia llave y ese modo diría `esValida: true`. **En `/api`, siempre que se sepa quién debería haber firmado, hay que pasar `llavePublicaEsperada`** (la de la bóveda, o la del certificado cuando exista) para el chequeo fuerte. El campo `origenLlave` de la respuesta indica cuál de los dos modos corrió.

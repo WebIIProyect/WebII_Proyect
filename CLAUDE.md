@@ -31,16 +31,26 @@ tocar ni modificar el código de los otros módulos**, solo el mío.
   recuperación de PIN, roles, administradores, configuración del sistema.
   Ya construyó `src/modules/contribuyentes`, `src/modules/recuperacion_pin`,
   `src/modules/roles`.
-- **Integrante 2 — Autoridad Certificadora (PKI)** (`/certificate`):
-  ciclo de vida completo de certificados — generar, emitir, renovar, revocar,
-  expirar, consultar estado, generar seriales, relacionar certificados con
-  contribuyentes.
+- **Integrante 2 — Autoridad Certificadora (PKI)** (`/certificate`) —
+  "probablemente el módulo más importante del proyecto" según el propio
+  equipo. Responsable de todo el ciclo de vida de certificados: generar,
+  emitir, renovar, revocar, expirar, consultar estado, generar seriales,
+  relacionar certificados con contribuyentes, y toda la lógica de estados.
+  Tablas: `Solicitudes_Certificado`, `Certificados_Digitales`,
+  `Renovaciones`, `Revocaciones`, `Historial_Estados`.
 - **Integrante 3 — Criptografía (`/crypto`) — YO.** Ver detalle abajo.
 - **Integrante 4 — API REST e Integración** (`/api`, `/auth`, `/documents`):
-  es quien conecta todos los módulos entre sí. Expone los endpoints,
-  autenticación JWT, API keys, middlewares, HTTPS, recepción/envío de XML.
-  **Va a importar y consumir las funciones que yo construya** — por eso mi
-  módulo no expone rutas propias (ver sección 4).
+  responsable de toda la comunicación con los demás grupos (del curso, no
+  solo entre nuestros propios módulos) — es quien une todos los módulos.
+  Expone los endpoints, JWT, API Keys, middlewares, HTTPS, validación JSON,
+  recepción/envío de XML, control de errores, documentación Swagger (si la
+  usan), pruebas de integración. Prepara la API para que otros grupos puedan
+  consumirla. Tablas: `Clientes_API`, `Lista_Negra_JWT`, `Documentos`
+  (probablemente donde persiste el XML/PDF firmado para servir `signedUrl`),
+  `Auditoria_General` (log amplio: login, logout, todas las acciones del
+  sistema — más general que mis `Transacciones_Firma`/`Transacciones_Cifrado`,
+  que solo cubren firma y cifrado). **Va a importar y consumir las funciones
+  que yo construya** — por eso mi módulo no expone rutas propias (ver sección 4).
 - **Integrante 5 — Documentación**: documento técnico, documento de
   laboratorio, manual para otros grupos, diagramas.
 
