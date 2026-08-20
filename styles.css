@@ -2284,3 +2284,81 @@ a.link-muted {
   align-items: center;
   gap: 10px;
 }
+
+/* Estilos adicionales para el Layout del Dashboard (puedes moverlos a tu styles.css) */
+.dashboard-container {
+  display: flex;
+  gap: 30px;
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+.sidebar-menu {
+  width: 260px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border-input, #ccc);
+  border-radius: 10px;
+  padding: 20px 0;
+  height: fit-content;
+}
+.sidebar-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar-menu li a {
+  display: block;
+  padding: 12px 20px;
+  color: var(--color-text-light, #333);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.3s;
+  cursor: pointer;
+}
+.sidebar-menu li a:hover,
+.sidebar-menu li a.active {
+  background: rgba(0, 123, 255, 0.1);
+  border-left: 4px solid #007bff;
+  color: #007bff;
+}
+.dashboard-content {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border-input, #ccc);
+  border-radius: 10px;
+  padding: 30px;
+}
+.tab-pane {
+  display: none;
+}
+.tab-pane.active {
+  display: block;
+}
+
+/* Tablas para historial */
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 0.9rem;
+}
+.audit-table th,
+.audit-table td {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  text-align: left;
+}
+.audit-table th {
+  background: rgba(0, 123, 255, 0.1);
+}
+.text-danger {
+  color: #dc3545;
+}
+.btn-danger {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
