@@ -26,16 +26,16 @@ const obtenerPorIdentificacion = (identificacion) => {
 };
 
 const crear = ({ tipo_contribuyente, identificacion, nombre_razon_social, correo,
-                 telefono, direccion, actividad_economica, pin_hash, id_rol }) => {
+                 telefono, direccion, actividad_economica, pin_hash, password_hash, id_rol }) => {
   return pool.query(
     `INSERT INTO contribuyentes
        (tipo_contribuyente, identificacion, nombre_razon_social, correo, telefono,
-        direccion, actividad_economica, pin_hash, id_rol)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+        direccion, actividad_economica, pin_hash, password_hash, id_rol)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
      RETURNING id_contribuyente, tipo_contribuyente, identificacion, nombre_razon_social,
                correo, estado, fecha_registro`,
     [tipo_contribuyente, identificacion, nombre_razon_social, correo, telefono,
-     direccion, actividad_economica, pin_hash, id_rol]
+     direccion, actividad_economica, pin_hash, password_hash, id_rol]
   );
 };
 

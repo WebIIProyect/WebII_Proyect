@@ -19,16 +19,25 @@ const obtenerContribuyente = async (id) => {
   return rows[0];
 };
 
+const PIN_MIN = 8;
+const PIN_MAX = 16;
+const POLITICA_PIN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/;
+
 const registrarContribuyente = async (datos) => {
-  const { tipo_contribuyente, identificacion, nombre_razon_social, correo, pin, id_rol } = datos;
+  const { tipo_contribuyente, identificacion, nombre_razon_social, correo, pin, password, id_rol } = datos;
 
   if (!TIPOS_VALIDOS.includes(tipo_contribuyente)) {
     const error = new Error('tipo_contribuyente debe ser FISICO o JURIDICO');
     error.status = 400;
     throw error;
   }
-  if (!identificacion || !nombre_razon_social || !correo || !pin || !id_rol) {
-    const error = new Error('Faltan campos obligatorios');
+  if (!identificacion || !nombre_razon_social || !correo || !pin || !password || !id_rol) {
+    const error = new Error('Faltan campos obligatorios (incluye pin y password)');
+    error.status = 400;
+    throw error;
+  }
+  if (pin.length < PIN_MIN || pin.length > PIN_MAX || !POLITICA_PIN.test(pin)) {
+    const error = new Error(`El PIN debe tener entre ${PIN_MIN} y ${PIN_MAX} caracteres, con mayúscula, minúscula, número y símbolo`);
     error.status = 400;
     throw error;
   }
@@ -41,8 +50,9 @@ const registrarContribuyente = async (datos) => {
   }
 
   const pin_hash = await bcrypt.hash(pin, 10);
+  const password_hash = await bcrypt.hash(password, 10);
 
-  const { rows } = await queries.crear({ ...datos, pin_hash });
+  const { rows } = await queries.crear({ ...datos, pin_hash, password_hash });
   return rows[0];
 };
 

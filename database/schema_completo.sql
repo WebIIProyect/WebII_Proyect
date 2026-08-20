@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS contribuyentes (
     direccion            VARCHAR(255),
     actividad_economica  VARCHAR(150),
     pin_hash             VARCHAR(255)  NOT NULL,
+    password_hash        VARCHAR(255),
     id_rol               INTEGER       NOT NULL REFERENCES roles(id_rol),
     estado                VARCHAR(20)   NOT NULL DEFAULT 'PENDIENTE'
         CHECK (estado IN ('PENDIENTE', 'ACTIVO', 'SUSPENDIDO', 'RECHAZADO')),
@@ -78,7 +79,8 @@ ON CONFLICT (nombre_rol) DO NOTHING;
 
 INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
     ('PIN_EXPIRACION_MINUTOS', '15', 'Minutos de validez de un token de recuperación de PIN'),
-    ('PIN_LONGITUD', '6', 'Cantidad de dígitos del PIN de contribuyente'),
+    ('PIN_LONGITUD_MIN', '8', 'Longitud mínima del PIN de firma'),
+    ('PIN_LONGITUD_MAX', '16', 'Longitud máxima del PIN de firma (requiere mayúscula, minúscula, número y símbolo)'),
     ('XML_VALIDADOR_VERSION', '4.3', 'Versión de la estructura XML de Hacienda usada para validar facturas'),
     ('ALGORITMO_FIRMA', 'RSA-SHA256', 'Algoritmo usado por el módulo de firma digital'),
     ('MAX_INTENTOS_PIN', '5', 'Intentos fallidos de PIN antes de suspender al contribuyente')
