@@ -9,63 +9,54 @@
 
   <body class="home-body">
     <div class="hero-image-fade"></div>
-    <!-- ===================================================== HEADER ===================================================== -->
+    <!-- HEADER -->
     <header class="floating-header">
       <nav class="navbar-pill">
         <div class="brand-logo">HSM Sign CR</div>
         <ul class="nav-links">
-          <li><a href="index.html"> Inicio </a></li>
-          <li><a href="information.html"> Información </a></li>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="information.html">Información</a></li>
         </ul>
         <button
           class="btn-auth-pill"
           onclick="window.location.href = 'index.html'"
         >
-          ← Regresar
+          Cerrar Sesión
         </button>
       </nav>
     </header>
 
-    <!--
-      CONTENIDO PRINCIPAL =====================================================
-      Nota: Esta página permite gestionar perfil y credenciales.
-      Muchas interacciones están simuladas (UX). Marcaré claramente las
-      simulaciones e incluiré esbozos de funciones para integrar con un
-      backend/HSM real (endpoints sugeridos: /api/upload-avatar, /api/change-password, /api/get-pin).
-    -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="main-content-home contact-main">
-      <div class="view-section active">
-        <div class="hero-text">
-          <h1>Gestión de Cuenta</h1>
-          <p>
-            Administra tu perfil, credenciales de acceso y visualiza tu PIN de
-            firma digital.
-          </p>
-        </div>
-
-        <!-- CONTENEDOR PRINCIPAL DEL PERFIL -->
-        <div
-          class="auth-container"
-          style="
-            flex-direction: column;
-            height: auto;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 50px;
-          "
-        >
-          <!-- SECCIÓN: ENCABEZADO DE PERFIL -->
-          <div class="profile-header">
+      <div class="dashboard-container">
+        <!-- SIDEBAR DE NAVEGACIÓN -->
+        <aside class="sidebar-menu">
+          <div
+            style="
+              text-align: center;
+              padding-bottom: 20px;
+              border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+              margin-bottom: 10px;
+            "
+          >
             <div
               class="avatar-wrapper"
               onclick="document.getElementById('inputFoto').click()"
+              style="
+                width: 80px;
+                height: 80px;
+                margin: 0 auto;
+                border-radius: 50%;
+                overflow: hidden;
+                cursor: pointer;
+              "
             >
               <img
                 id="imgAvatar"
                 src="https://via.placeholder.com/150/2c2c2c/ffffff?text=USR"
                 alt="Foto de Perfil"
+                style="width: 100%; height: 100%; object-fit: cover"
               />
-              <div class="avatar-overlay">Cambiar foto</div>
               <input
                 type="file"
                 id="inputFoto"
@@ -74,164 +65,309 @@
                 onchange="actualizarFoto(this)"
               />
             </div>
-            <div class="profile-info">
-              <h2>Carlos Desarrollador</h2>
-              <p>Cédula: 1-1823-0456</p>
-              <p>Correo: carlos.dev@empresa.com</p>
-              <span class="badge">✔ Certificado Activo (Vence: 2028)</span>
-            </div>
+            <h4 style="margin: 10px 0 0 0">Carlos Desarrollador</h4>
+            <span style="font-size: 0.8rem; color: #4caf50"
+              >✔ Certificado Activo</span
+            >
           </div>
+          <ul id="menuTabs">
+            <li>
+              <a class="active" onclick="showTab('tab-certificado', this)"
+                >Ver Certificado</a
+              >
+            </li>
+            <li>
+              <a onclick="descargarCertificadoPublico()"
+                >Descargar Público (.cer)</a
+              >
+            </li>
+            <li><a onclick="showTab('tab-pin', this)">Cambiar PIN</a></li>
+            <li>
+              <a onclick="showTab('tab-renovacion', this)"
+                >Solicitar Renovación</a
+              >
+            </li>
+            <li>
+              <a onclick="showTab('tab-revocacion', this)"
+                >Solicitar Revocación</a
+              >
+            </li>
+            <li>
+              <a onclick="showTab('tab-historial', this)"
+                >Historial de Firmas</a
+              >
+            </li>
+          </ul>
+        </aside>
 
-          <!-- SECCIÓN: CAMBIAR CONTRASEÑA -->
-          <div style="margin-bottom: 50px">
-            <h3 class="section-title">Actualizar Contraseña de Acceso</h3>
-            <div class="info-box-light" style="margin-bottom: 20px">
-              <p class="info-box-text">
-                Esta contraseña se utiliza para iniciar sesión en la plataforma.
-                <strong>No modifica tu PIN de firma digital.</strong>
+        <!-- PANELES DE CONTENIDO -->
+        <section class="dashboard-content">
+          <!-- PANEL 1: VER CERTIFICADO -->
+          <div id="tab-certificado" class="tab-pane active">
+            <h2>Detalles del Certificado Digital</h2>
+            <div
+              class="info-box-light"
+              style="
+                margin: 20px 0;
+                padding: 20px;
+                background: rgba(0, 0, 0, 0.03);
+                border-radius: 8px;
+              "
+            >
+              <p><strong>Tipo de Identificación:</strong> Física</p>
+              <p><strong>Número de Identificación:</strong> 1-1823-0456</p>
+              <p>
+                <strong>Nombre Completo:</strong> Carlos Alberto Desarrollador
+              </p>
+              <p><strong>Correo Electrónico:</strong> carlos.dev@empresa.com</p>
+              <hr
+                style="
+                  margin: 15px 0;
+                  border: 0;
+                  border-top: 1px solid rgba(0, 0, 0, 0.1);
+                "
+              />
+              <p>
+                <strong>Estado:</strong>
+                <span style="color: #4caf50; font-weight: bold">Activo</span>
+              </p>
+              <p><strong>Válido Desde:</strong> 28 Agosto 2026</p>
+              <p><strong>Válido Hasta:</strong> 28 Agosto 2028</p>
+              <p>
+                <strong>Serial del Certificado:</strong> 4A:3B:2C:99:FF:00:11:22
+              </p>
+              <p>
+                <strong>Algoritmo de Firma:</strong> SHA-256 con RSA (2048 bits)
               </p>
             </div>
+            <button class="btn-primary" onclick="descargarCertificadoPublico()">
+              Descargar Llave Pública (.cer)
+            </button>
+          </div>
 
-            <form id="formPassword" onsubmit="cambiarPassword(event)">
-              <!-- Nota: inputs tienen IDs añadidos para facilitar integración real -->
-              <div style="display: flex; gap: 20px; margin-bottom: 20px">
-                <div class="input-group" style="flex: 1">
-                  <label
-                    class="form-label"
-                    style="
-                      display: block;
-                      margin-bottom: 8px;
-                      color: var(--color-text-light);
-                    "
-                    >Nueva Contraseña:</label
-                  >
-                  <input
-                    id="newPass"
-                    type="password"
-                    class="form-input"
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-                <div class="input-group" style="flex: 1">
-                  <label
-                    class="form-label"
-                    style="
-                      display: block;
-                      margin-bottom: 8px;
-                      color: var(--color-text-light);
-                    "
-                    >Confirmar Nueva:</label
-                  >
-                  <input
-                    id="confirmNewPass"
-                    type="password"
-                    class="form-input"
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
+          <!-- PANEL 2: CAMBIAR PIN -->
+          <div id="tab-pin" class="tab-pane">
+            <h2>Cambiar PIN de Firma</h2>
+            <div
+              class="info-box-blue"
+              style="
+                margin-bottom: 20px;
+                padding: 15px;
+                background: rgba(0, 123, 255, 0.1);
+                border-left: 4px solid #007bff;
+              "
+            >
+              <p style="margin: 0; font-size: 0.9rem">
+                <strong>Política de Seguridad:</strong> El PIN debe tener entre
+                8 y 16 caracteres e incluir al menos: 1 mayúscula, 1 minúscula,
+                1 número y 1 símbolo.
+              </p>
+            </div>
+            <form id="formPin" onsubmit="cambiarPin(event)">
+              <div class="input-group" style="margin-bottom: 15px">
+                <label class="form-label">PIN Actual:</label>
+                <input
+                  type="password"
+                  id="currentPin"
+                  class="form-input"
+                  required
+                />
               </div>
-              <button
-                type="submit"
-                id="btnPassword"
-                class="btn-primary"
-                style="padding: 12px 25px"
-              >
-                Guardar Nueva Contraseña
+              <div class="input-group" style="margin-bottom: 15px">
+                <label class="form-label">Nuevo PIN:</label>
+                <input
+                  type="password"
+                  id="newPin"
+                  class="form-input"
+                  pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,16}"
+                  title="Debe cumplir la política de seguridad"
+                  required
+                />
+              </div>
+              <div class="input-group" style="margin-bottom: 20px">
+                <label class="form-label">Confirmar Nuevo PIN:</label>
+                <input
+                  type="password"
+                  id="confirmNewPin"
+                  class="form-input"
+                  required
+                />
+              </div>
+              <button type="submit" id="btnPin" class="btn-primary">
+                Actualizar PIN
               </button>
               <span
-                id="msgPassword"
-                style="color: #4caf50; margin-left: 15px; display: none"
-                >✔ Actualizada con éxito</span
+                id="msgPin"
+                style="color: #4caf50; display: none; margin-left: 10px"
+                >✔ PIN actualizado en el HSM</span
               >
             </form>
           </div>
 
-          <!-- SECCIÓN: REVELAR PIN DE FIRMA -->
-          <div>
-            <h3 class="section-title">Consultar PIN de Firma</h3>
-            <div class="info-box-blue" style="margin-bottom: 20px">
-              <p class="info-box-blue-text">
-                Por seguridad, tu PIN de firma está oculto. Para visualizarlo
-                temporalmente, debes ingresar tu
-                <strong>contraseña de inicio de sesión actual</strong>. El PIN
-                se ocultará automáticamente después de 10 segundos.
-              </p>
-            </div>
-
+          <!-- PANEL 3: RENOVACIÓN -->
+          <div id="tab-renovacion" class="tab-pane">
+            <h2>Renovación de Certificado</h2>
+            <p>
+              Los certificados tienen una validez de 2 años. Si tu certificado
+              está a punto de expirar, puedes solicitar la generación de un
+              nuevo par de llaves criptográficas.
+            </p>
             <div
               style="
-                background: rgba(0, 0, 0, 0.2);
-                border: 1px solid var(--color-border-input);
-                padding: 25px;
+                background: rgba(0, 0, 0, 0.03);
+                padding: 20px;
                 border-radius: 8px;
+                margin-top: 20px;
               "
             >
-              <div
-                class="input-group"
-                style="margin-bottom: 15px; max-width: 400px"
-              >
-                <label
-                  class="form-label"
-                  style="
-                    display: block;
-                    margin-bottom: 8px;
-                    color: var(--color-text-light);
-                  "
-                  >Ingresa tu contraseña de sesión:</label
-                >
-                <input
-                  type="password"
-                  id="passForPin"
-                  class="form-input"
-                  placeholder="Tu contraseña actual"
-                />
-              </div>
+              <p>Tu certificado actual expira en: <strong>730 días</strong>.</p>
               <button
-                type="button"
-                id="btnRevelar"
                 class="btn-secondary"
-                onclick="revelarPin()"
+                onclick="alert('Funcionalidad de API: POST /api/cert/renew')"
+                disabled
               >
-                Visualizar PIN de Firma
+                Solicitar Renovación
               </button>
-              <span
-                id="msgPinError"
-                style="color: #f44336; margin-left: 15px; display: none"
-                >Contraseña requerida</span
-              >
-              <!-- Caja donde aparece el PIN -->
-              <div id="cajaPin" class="pin-reveal-box">
-                <!-- Se inyecta por JS -->
-              </div>
-              <p
-                id="contadorPin"
-                style="
-                  color: var(--color-text-light);
-                  font-size: 0.85rem;
-                  display: none;
-                  margin-top: 10px;
-                  text-align: center;
-                "
-              >
-                El PIN se ocultará en
-                <span id="segundosPin">10</span> segundos...
+              <p style="font-size: 0.8rem; margin-top: 10px; color: #666">
+                La renovación estará habilitada 30 días antes de la fecha de
+                expiración.
               </p>
             </div>
           </div>
-        </div>
+
+          <!-- PANEL 4: REVOCACIÓN -->
+          <div id="tab-revocacion" class="tab-pane">
+            <h2 class="text-danger">Revocación de Certificado</h2>
+            <p>
+              Si sospechas que tu PIN o contraseña han sido comprometidos, o ya
+              no representas a la entidad jurídica, debes revocar el certificado
+              inmediatamente.
+            </p>
+            <div
+              style="
+                background: rgba(220, 53, 69, 0.1);
+                padding: 20px;
+                border-left: 4px solid #dc3545;
+                border-radius: 8px;
+                margin-top: 20px;
+              "
+            >
+              <h4 style="margin-top: 0">¡Advertencia!</h4>
+              <p>
+                Esta acción es irreversible. El certificado será añadido a la
+                Lista de Revocación de Certificados (CRL) y no podrá usarse para
+                firmar nuevos documentos XML o PDF. Las firmas realizadas antes
+                de la revocación mantendrán su validez temporal.
+              </p>
+
+              <div style="margin-top: 20px">
+                <label>Ingresa tu PIN actual para confirmar:</label><br />
+                <input
+                  type="password"
+                  id="pinRevocacion"
+                  class="form-input"
+                  style="max-width: 200px; margin: 10px 0"
+                  placeholder="PIN de Firma"
+                /><br />
+                <button class="btn-danger" onclick="revocarCertificado()">
+                  Revocar Certificado Permanentemente
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANEL 5: HISTORIAL -->
+          <div id="tab-historial" class="tab-pane">
+            <h2>Historial y Auditoría de Firmas</h2>
+            <p>
+              Registro inmutable de todas las transacciones realizadas con tu
+              certificado digital.
+            </p>
+
+            <div style="overflow-x: auto">
+              <table class="audit-table">
+                <thead>
+                  <tr>
+                    <th>Fecha y Hora (Local)</th>
+                    <th>Zona Horaria (UTC)</th>
+                    <th>Acción</th>
+                    <th>Documento / Hash (SHA-256)</th>
+                    <th>Serial Cert.</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>28/08/2026 14:30:15</td>
+                    <td>UTC-6</td>
+                    <td>Firma XML</td>
+                    <td>
+                      Factura_001.xml<br /><small
+                        >e3b0c44298fc1c149afbf4c...</small
+                      >
+                    </td>
+                    <td>4A:3B:2C...</td>
+                    <td><span style="color: #4caf50">Éxito</span></td>
+                  </tr>
+                  <tr>
+                    <td>28/08/2026 10:15:00</td>
+                    <td>UTC-6</td>
+                    <td>Generación Cert.</td>
+                    <td>N/A</td>
+                    <td>4A:3B:2C...</td>
+                    <td><span style="color: #4caf50">Éxito</span></td>
+                  </tr>
+                  <tr>
+                    <td>28/08/2026 09:00:12</td>
+                    <td>UTC-6</td>
+                    <td>Intento Firma</td>
+                    <td>Contrato.pdf</td>
+                    <td>4A:3B:2C...</td>
+                    <td><span class="text-danger">PIN Fallido (1/3)</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
 
-    <!-- ===================================================== FOOTER ===================================================== -->
-    <footer class="minimal-footer" style="margin-top: 50px">
-      <p>© 2026 HSM Sign CR. Proyecto II-2026 - Prof. Jorge Ruiz (york).</p>
+    <!-- FOOTER -->
+     <footer class="minimal-footer editorial-footer">
+      <p>
+        © 2026 HSM Sign CR. Infraestructura PKI en la Nube. Haciendo la
+        tecnología legal accesible para todos.
+      </p>
     </footer>
 
-    <!-- Script de interacciones -->
+    <!-- SCRIPT DE LÓGICA FRONTEND A BACKEND REST-API -->
     <script>
-      // Función para cambiar la foto de perfil en el frontend (SIMULACIÓN)
+      // Lógica para cambiar entre pestañas del menú lateral
+      function showTab(tabId, element) {
+        // Ocultar todas las pestañas
+        document
+          .querySelectorAll(".tab-pane")
+          .forEach((tab) => tab.classList.remove("active"));
+        // Quitar la clase active de todos los enlaces
+        document
+          .querySelectorAll("#menuTabs a")
+          .forEach((a) => a.classList.remove("active"));
+
+        // Mostrar la pestaña seleccionada y marcar el enlace
+        document.getElementById(tabId).classList.add("active");
+        element.classList.add("active");
+      }
+
+      // SIMULACIÓN: Descargar Certificado Público (.cer)
+      function descargarCertificadoPublico() {
+        // En la funcionalidad real, esto hace un GET /api/cert/public y devuelve un archivo .cer
+        alert(
+          "Descargando llave pública Carlos_Desarrollador.cer...\n\n(Este archivo contiene la llave pública para que terceros validen tus facturas XML o PDF, no contiene tu llave privada).",
+        );
+      }
+
+      // SIMULACIÓN: Cambiar Foto
       function actualizarFoto(input) {
         if (input.files && input.files[0]) {
           const reader = new FileReader();
@@ -242,176 +378,61 @@
         }
       }
 
-      /*
-        ESQUEMA SUGERIDO: actualizarFotoReal
-        - Para producción: enviar el archivo al backend (POST /api/upload-avatar)
-          con FormData { file }.
-        - El backend debe devolver la URL segura del avatar y el frontend
-          actualizará `imgAvatar.src` con esa URL.
-      */
-      async function actualizarFotoReal(input) {
-        if (!input.files || !input.files[0]) return;
-        const file = input.files[0];
-        const fd = new FormData();
-        fd.append('avatar', file);
-
-        try {
-          const res = await fetch('/api/upload-avatar', {
-            method: 'POST',
-            body: fd,
-            credentials: 'include'
-          });
-          if (!res.ok) throw new Error('Error subiendo avatar');
-          const data = await res.json();
-          if (data.url) document.getElementById('imgAvatar').src = data.url;
-        } catch (err) {
-          console.error('Error al subir avatar:', err);
-        }
-      }
-
-      // Simulación de cambio de contraseña (UX)
-      function cambiarPassword(event) {
+      // LÓGICA DE API REST: Cambio de PIN de Firma
+      async function cambiarPin(event) {
         event.preventDefault();
-        const btn = document.getElementById("btnPassword");
-        const msg = document.getElementById("msgPassword");
-        btn.innerText = "Guardando...";
-        btn.style.opacity = "0.7";
-        btn.disabled = true;
-        setTimeout(() => {
-          btn.innerText = "Guardar Nueva Contraseña";
-          btn.style.opacity = "1";
-          btn.disabled = false;
-          msg.style.display = "inline";
-          event.target.reset(); // Limpiar inputs
-          // Ocultar mensaje después de 3 segundos
-          setTimeout(() => (msg.style.display = "none"), 3000);
-        }, 1200);
-      }
+        const currentPin = document.getElementById("currentPin").value;
+        const newPin = document.getElementById("newPin").value;
+        const confirmNewPin = document.getElementById("confirmNewPin").value;
 
-      /*
-        ESQUEMA SUGERIDO: cambiarPasswordReal
-        - Reemplazar la simulación por una llamada segura al backend:
-          POST /api/change-password { newPassword }
-        - Validar en servidor (política de contraseñas), hashear con bcrypt/argon2
-          y devolver resultado.
-      */
-      async function cambiarPasswordReal(event) {
-        event.preventDefault();
-        const newPass = document.getElementById('newPass').value;
-        const confirm = document.getElementById('confirmNewPass').value;
-        if (newPass !== confirm) return alert('Las contraseñas no coinciden');
-
-        try {
-          const btn = document.getElementById('btnPassword');
-          btn.disabled = true;
-          btn.innerText = 'Guardando...';
-
-          const res = await fetch('/api/change-password', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ newPassword: newPass }),
-            credentials: 'include'
-          });
-
-          if (!res.ok) throw new Error('Error cambiando la contraseña');
-          const data = await res.json();
-          if (data.success) {
-            document.getElementById('msgPassword').style.display = 'inline';
-            setTimeout(() => (document.getElementById('msgPassword').style.display = 'none'), 3000);
-            event.target.reset();
-          } else {
-            alert('No se pudo cambiar la contraseña: ' + (data.message || 'Error'));
-          }
-          btn.disabled = false;
-          btn.innerText = 'Guardar Nueva Contraseña';
-        } catch (err) {
-          alert('Error al cambiar contraseña: ' + (err.message || err));
-        }
-      }
-
-      // Lógica para revelar el PIN por 10 segundos (SIMULACIÓN)
-      let temporizadorPin;
-      let intervaloContador;
-      function revelarPin() {
-        const inputPass = document.getElementById("passForPin");
-        const btn = document.getElementById("btnRevelar");
-        const caja = document.getElementById("cajaPin");
-        const errorMsg = document.getElementById("msgPinError");
-        const contadorTexto = document.getElementById("contadorPin");
-        const segSpan = document.getElementById("segundosPin");
-        if (inputPass.value.trim() === "") {
-          errorMsg.style.display = "inline";
-          setTimeout(() => (errorMsg.style.display = "none"), 2000);
+        if (newPin !== confirmNewPin) {
+          alert("El nuevo PIN y su confirmación no coinciden.");
           return;
         }
-        // Limpiar timeouts si el usuario le da click varias veces
-        clearTimeout(temporizadorPin);
-        clearInterval(intervaloContador);
-        // Simular conexión a base de datos
-        btn.innerText = "Verificando...";
+
+        const btn = document.getElementById("btnPin");
+        btn.innerText = "Guardando en HSM...";
+        btn.disabled = true;
+
+        /* 
+          ESTRUCTURA PARA BACKEND:
+          Se enviaría vía HTTPS usando fetch(). En el backend de Node.js:
+          1. Recibes el JSON.
+          2. Verificas 'currentPin' comparándolo con el Hash BCrypt en la base de datos.
+          3. Hasheas 'newPin' con BCrypt.
+          4. Guardas el nuevo Hash en la base de datos.
+        */
+
+        // Simulación de latencia de red
         setTimeout(() => {
-          btn.innerText = "Visualizar PIN de Firma";
-          inputPass.value = ""; // Limpiar el input por seguridad
-          // Mostrar PIN (Simulado)
-          caja.innerText = "MiPIN123!"; // Este sería el PIN recuperado por el API
-          caja.style.display = "block";
-          contadorTexto.style.display = "block";
-          let segs = 10;
-          segSpan.innerText = segs;
-          // Cuenta regresiva
-          intervaloContador = setInterval(() => {
-            segs--;
-            segSpan.innerText = segs;
-          }, 1000);
-          // Ocultar de nuevo tras 10 segundos
-          temporizadorPin = setTimeout(() => {
-            clearInterval(intervaloContador);
-            caja.style.display = "none";
-            contadorTexto.style.display = "none";
-            caja.innerText = "";
-          }, 10000);
-        }, 800);
+          document.getElementById("msgPin").style.display = "inline";
+          event.target.reset(); // Limpia los inputs
+          btn.innerText = "Actualizar PIN";
+          btn.disabled = false;
+          setTimeout(
+            () => (document.getElementById("msgPin").style.display = "none"),
+            4000,
+          );
+        }, 1500);
       }
 
-      /*
-        ESQUEMA SUGERIDO: revelarPinReal
-        - Para la funcionalidad real, hacer POST /api/get-pin con { password }
-          en el servidor y que el backend consulte el HSM de forma segura.
-        - El backend debe validar la contraseña, autorizar la petición y
-          devolver el PIN cifrado/temporal o un token para visualizarlo.
-        - Nunca enviar el PIN en texto plano salvo por canales internos y
-          con controles de auditoría.
-      */
-      async function revelarPinReal() {
-        const inputPass = document.getElementById('passForPin');
-        if (!inputPass.value.trim()) return alert('Ingrese su contraseña de sesión');
-        try {
-          const res = await fetch('/api/get-pin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: inputPass.value }),
-            credentials: 'include'
-          });
-          if (!res.ok) throw new Error('Error recuperando PIN');
-          const data = await res.json();
-          if (data.pin) {
-            // Mostrar pin temporalmente
-            const caja = document.getElementById('cajaPin');
-            caja.innerText = data.pin;
-            caja.style.display = 'block';
-            const contadorTexto = document.getElementById('contadorPin');
-            contadorTexto.style.display = 'block';
-            // temporizador para ocultar (usar server-side expiry idealmente)
-            setTimeout(() => {
-              caja.style.display = 'none';
-              contadorTexto.style.display = 'none';
-              caja.innerText = '';
-            }, 10000);
-          } else {
-            alert('No fue posible recuperar el PIN: ' + (data.message || 'Error'));
-          }
-        } catch (err) {
-          alert('Error al recuperar PIN: ' + (err.message || err));
+      // LÓGICA DE API REST: Revocación
+      function revocarCertificado() {
+        const pin = document.getElementById("pinRevocacion").value;
+        if (!pin) {
+          alert("Debes ingresar tu PIN para revocar el certificado.");
+          return;
+        }
+
+        if (
+          confirm(
+            "¿Estás absolutamente seguro de que deseas revocar este certificado? Esta acción destruirá tu llave privada en el HSM y es irreversible.",
+          )
+        ) {
+          // Petición POST /api/cert/revoke con JSON { pin: "..." }
+          alert(
+            "Petición enviada al servidor.\n\nBackend evaluará el PIN con BCrypt, eliminará el .pem de la carpeta segura y cambiará el estado a 'Revocado' en la base de datos.",
+          );
         }
       }
     </script>
