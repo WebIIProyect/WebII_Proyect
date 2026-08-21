@@ -7,10 +7,10 @@ const IV_LENGTH_BYTES = 12; // tamaño recomendado de IV para GCM
 const AUTH_TAG_LENGTH_BYTES = 16;
 
 /**
- *  
- *
+ * Obtiene la llave maestra de 32 bytes.
  * @returns {Buffer} llave maestra de 32 bytes.
  */
+
 function obtenerLlaveMaestra() {
   const hex = process.env.HSM_MASTER_KEY;
   if (!hex) {
@@ -57,9 +57,6 @@ function cifrarLlavePrivada(llavePrivadaPem) {
 
 /**
  * Descifra el material guardado en la bóveda y devuelve la llave privada
- * en claro como Buffer (para poder destruirla luego con `fill(0)`).
- * GCM valida el authTag automáticamente: si el ciphertext fue manipulado,
- * `decipher.final()` lanza un error en vez de devolver datos corruptos.
  *
  * @param {{ llavePrivadaCifrada: string, iv: string, authTag: string }} datosCifrados
  * @returns {Buffer} llave privada PEM en claro, en un Buffer.
@@ -77,9 +74,6 @@ function descifrarLlavePrivada({ llavePrivadaCifrada, iv, authTag }) {
 
 /**
  * Cifra y guarda en la bóveda el par de llaves de un contribuyente
- * (uso típico: justo después de `rsaService.generarParLlavesRSA()`, en el
- * Flujo A — alta de certificado).
- *
  * @param {number} idContribuyente
  * @param {string} llavePublica - PEM, se guarda en claro (no es secreta).
  * @param {string} llavePrivadaPem - PEM, se cifra antes de guardar.
@@ -122,16 +116,11 @@ async function guardarLlaveEnBoveda(idContribuyente, llavePublica, llavePrivadaP
 }
 
 /**
- * Carga temporalmente la llave privada de un contribuyente en memoria:
- * la trae cifrada desde la bóveda y la descifra al vuelo. El llamador
- * (más adelante, el servicio de firma del punto 3) es responsable de:
- *   1. Usar `llavePrivadaBuffer` SOLO durante la operación de firma.
- *   2. Llamar a `destruirLlaveDeMemoria(llavePrivadaBuffer)` apenas termine,
- *      esté la firma en éxito o en error (idealmente en un `finally`).
- *
+ * Carga temporalmente la llave privada de un contribuyente en memoria
  * @param {number} idContribuyente
  * @returns {Promise<{ llavePublica: string, llavePrivadaBuffer: Buffer }>}
  */
+
 async function cargarLlaveTemporalmente(idContribuyente) {
   try {
     const registro = await queries.obtenerLlaveDeBoveda(idContribuyente);
@@ -158,9 +147,7 @@ async function cargarLlaveTemporalmente(idContribuyente) {
     };
   } catch (error) {
     // Best-effort, mismo criterio que en guardarLlaveEnBoveda: un intento de
-    // descifrado fallido (ej. dato manipulado, GCM rechaza el authTag) SÍ se
-    // quiere dejar en el registro — es justo el tipo de evento que interesa
-    // para auditoría/seguridad.
+    // descifrado fallido
     await queries
       .registrarTransaccionCifrado({
         idContribuyente,
@@ -174,12 +161,7 @@ async function cargarLlaveTemporalmente(idContribuyente) {
 }
 
 /**
- * "Destruye" una llave privada que estaba en memoria en claro: sobrescribe
- * todos sus bytes con ceros para que ya no quede el valor real en el Buffer,
- * y así intentar minimizar la ventana de tiempo en la que la llave existe en
- * claro. Ver la nota honesta en el encabezado del archivo sobre las
- * limitaciones reales de esto en JavaScript.
- *
+ * "Destruye" una llave privada que estaba en memoria en claro
  * @param {Buffer} llavePrivadaBuffer
  */
 function destruirLlaveDeMemoria(llavePrivadaBuffer) {

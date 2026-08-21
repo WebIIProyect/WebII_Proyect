@@ -1,16 +1,9 @@
-/**
- * queries.js — módulo /crypto
- * Acceso a mis 3 tablas: `boveda_llaves_privadas`, `transacciones_firma` y
- * `transacciones_cifrado`.
- */
 
 const pool = require('../../config/db.js');
 
 /**
  * Inserta la llave de un contribuyente en la bóveda, o la reemplaza si ya
- * existía (un contribuyente tiene una sola fila en la bóveda — ver el
- * UNIQUE sobre id_contribuyente en el schema).
- *
+ * existía
  * @param {object} datos
  * @param {number} datos.idContribuyente
  * @param {string} datos.llavePublica - PEM, en claro (no es secreta).
@@ -50,7 +43,6 @@ async function guardarLlaveEnBoveda({
 
 /**
  * Obtiene el registro cifrado de la bóveda para un contribuyente
- * (para descifrarlo y cargarlo temporalmente en memoria — HSM simulado).
  *
  * @param {number} idContribuyente
  * @returns {Promise<object|null>} la fila completa, o null si no tiene llave.
@@ -70,9 +62,7 @@ async function obtenerLlaveDeBoveda(idContribuyente) {
 }
 
 /**
- * Registra una operación de firma (exitosa o fallida) en `transacciones_firma`.
- * Ver Flujo B en CLAUDE.md: cada vez que se firma una factura debe quedar
- * fecha/hora (UTC), hash del documento y serial del certificado usado.
+ * Registra una operación de firma (exitosa o fallida) en transacciones_firma.
  *
  * @param {object} datos
  * @param {number} datos.idContribuyente
@@ -103,8 +93,7 @@ async function registrarTransaccionFirma({
 }
 
 /**
- * Historial de firmas de un contribuyente, más recientes primero (útil para
- * "Mi Cuenta > Ver historial de firmas" en el frontend, y para auditoría).
+ * Historial de firmas de un contribuyente, más recientes primero
  *
  * @param {number} idContribuyente
  * @returns {Promise<object[]>}
@@ -125,8 +114,7 @@ async function obtenerTransaccionesFirmaPorContribuyente(idContribuyente) {
 
 /**
  * Registra una operación de cifrado o descifrado (exitosa o fallida) en
- * `transacciones_cifrado` — se usa cada vez que el HSM simulado cifra una
- * llave antes de guardarla, o la descifra para cargarla temporalmente.
+ * transacciones_cifrado
  *
  * @param {object} datos
  * @param {number} datos.idContribuyente

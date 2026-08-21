@@ -1,38 +1,5 @@
-/**
- * validarFirmaService.js
- * Servicio de validación de firmas XMLDSig (punto 4 del checklist).
- *
- * Es el complemento de `firmaService.js`: mientras ese firma, este verifica
- * que una firma ya aplicada sobre un XML sea auténtica — es decir, que el
- * documento no fue alterado después de firmarse y que la firma corresponde
- * de verdad a la llave pública indicada.
- *
- * Alcance de este archivo — a propósito, SOLO valida la firma criptográfica:
- *   - NO consulta si el certificado del contribuyente sigue vigente, está
- *     revocado o expirado. Esa parte le corresponde al módulo /certificate
- *     (Integrante 2). De hecho, según la política ya definida en
- *     CLAUDE.md, un certificado vencido igual debe poder usarse para
- *     validar firmas hechas cuando SÍ estaba vigente — por eso esta función
- *     no depende en nada del estado del certificado, solo de la matemática
- *     de la firma.
- *   - NO registra la operación en `Transacciones_Firma`/`Transacciones_Cifrado`
- *     (eso es el punto 5).
- *
- * Dos modos de validar (pedido del equipo tras revisar el frontend):
- *   1. Con `llavePublicaEsperada` — el modo fuerte: confirma que la firma
- *      corresponde EXACTAMENTE a esa llave (ej. la guardada en la bóveda
- *      para el contribuyente que dice haber firmado). Úsalo siempre que
- *      sepas quién debería haber firmado.
- *   2. Sin `llavePublicaEsperada` — extrae la llave directamente del
- *      `<KeyInfo>` que `firmaService.firmarXML` ya embebe en el documento.
- *      Solo confirma que la firma es "autoconsistente" (nadie tocó el
- *      documento después de firmarlo con ESA llave) — NO confirma que esa
- *      llave sea de verdad de quien dice ser. Cualquiera podría firmar con
- *      su propia llave y pasar este modo. Para confirmar identidad hace
- *      falta el certificado (Integrante 2) o comparar contra la bóveda.
- *      El resultado indica `origenLlave` para que quien lo use sepa cuál
- *      de los dos modos corrió.
- */
+//Servicio de validación de firmas XMLDSig (punto 4 del checklist).
+ 
 
 const crypto = require('crypto');
 const { SignedXml } = require('xml-crypto');
@@ -44,8 +11,7 @@ const NAMESPACE_XMLDSIG = 'http://www.w3.org/2000/09/xmldsig#';
 
 /**
  * Extrae la llave pública embebida en un nodo <KeyInfo> con formato
- * <KeyValue><RSAKeyValue><Modulus>/<Exponent> — el que genera
- * `firmaService.construirKeyInfoRSA`.
+ * <KeyValue><RSAKeyValue><Modulus>/<Exponent>
  *
  * @param {Node|null} keyInfoNode
  * @returns {string|null} PEM de la llave pública, o null si no se encontró.
@@ -72,9 +38,7 @@ function extraerLlavePublicaDeKeyInfo(keyInfoNode) {
  * @param {string} xmlFirmado - el XML ya firmado (con el nodo <Signature>
  *   que dejó `firmaService.firmarXML`).
  * @param {string|Buffer} [llavePublicaEsperada] - PEM de la llave pública
- *   contra la que se quiere validar (ej. la guardada en la bóveda para el
- *   contribuyente). Si se omite, se usa la llave embebida en el propio
- *   `<KeyInfo>` del documento (ver nota de dos modos arriba).
+ *   contra la que se quiere validar 
  * @returns {{ esValida: boolean, motivo?: string, origenLlave?: 'proporcionada'|'keyInfo' }}
  */
 function validarFirmaXML(xmlFirmado, llavePublicaEsperada) {
@@ -104,8 +68,7 @@ function validarFirmaXML(xmlFirmado, llavePublicaEsperada) {
   );
 
   try {
-    // Si el XML tuviera más de una firma, se valida la primera — el Flujo B
-    // de este proyecto solo aplica una firma por factura.
+    // Si el XML tuviera más de una firma, se valida la primera 
     verificador.loadSignature(nodosFirma[0]);
 
     if (!llavePublicaEsperada && !extraerLlavePublicaDeKeyInfo(nodosFirma[0])) {
