@@ -27,14 +27,48 @@
  * formado y rechaza cualquier caso donde el parser reporte un problema
  * (`validarXMLBienFormado`), en vez de confiar en que `computeSignature`
  * lo vaya a detectar por su cuenta (no siempre lo hace).
+ *
+ * KeyInfo / llave pública embebida (pedido del equipo tras revisar el
+ * frontend): `firmarXML` deriva automáticamente la llave pública a partir
+ * de la llave privada (Node lo soporta nativo, sin librerías nuevas) y la
+ * embebe dentro del propio `<Signature>` como `<KeyValue><RSAKeyValue>`.
+ * Así el documento firmado queda "autodescriptivo" — quien lo valida no
+ * necesita pedir la llave pública aparte, la saca del mismo XML (ver
+ * `validarFirmaService.js`). Ojo: esto NO es lo mismo que confirmar la
+ * identidad del firmante — cualquiera podría firmar con su propia llave y
+ * embeber su propia llave pública, y "validaría" igual. Confirmar que esa
+ * llave pertenece de verdad al contribuyente que dice ser sigue siendo
+ * trabajo del certificado (Integrante 2) o de comparar contra la llave
+ * guardada en la bóveda — por eso `validarFirmaService.validarFirmaXML`
+ * sigue aceptando una llave esperada opcional para ese chequeo más fuerte.
  */
 
+const crypto = require('crypto');
 const { SignedXml } = require('xml-crypto');
 const { DOMParser } = require('@xmldom/xmldom');
 
 const ALGORITMO_FIRMA = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256';
 const ALGORITMO_DIGEST = 'http://www.w3.org/2001/04/xmlenc#sha256';
 const ALGORITMO_CANONICALIZACION = 'http://www.w3.org/2001/10/xml-exc-c14n#';
+
+/**
+ * Construye el contenido de <KeyInfo> con la llave pública en formato
+ * <KeyValue><RSAKeyValue><Modulus>/<Exponent>, el formato estándar de
+ * XMLDSig para embeber una llave pública RSA "suelta" (sin certificado).
+ *
+ * @param {string|Buffer} llavePublicaOprivada - PEM de la llave pública, o
+ *   de la llave privada (Node deriva la pública automáticamente).
+ * @returns {string} el XML de `<KeyValue>...</KeyValue>`.
+ */
+function construirKeyInfoRSA(llavePublicaOprivada) {
+  const llaveObjeto = crypto.createPublicKey(llavePublicaOprivada);
+  const jwk = llaveObjeto.export({ format: 'jwk' }); // { kty:'RSA', n, e } en base64url
+
+  const modulus = Buffer.from(jwk.n, 'base64url').toString('base64');
+  const exponent = Buffer.from(jwk.e, 'base64url').toString('base64');
+
+  return `<KeyValue><RSAKeyValue><Modulus>${modulus}</Modulus><Exponent>${exponent}</Exponent></RSAKeyValue></KeyValue>`;
+}
 
 /**
  * Verifica que un XML esté bien formado antes de firmarlo. Lanza un error
@@ -91,6 +125,7 @@ function firmarXML(xmlFactura, llavePrivada) {
     privateKey: llavePrivada,
     signatureAlgorithm: ALGORITMO_FIRMA,
     canonicalizationAlgorithm: ALGORITMO_CANONICALIZACION,
+    getKeyInfoContent: () => construirKeyInfoRSA(llavePrivada),
   });
 
   // "/*" = el elemento raíz del documento (ej. <FacturaElectronica>), sea
@@ -109,4 +144,5 @@ function firmarXML(xmlFactura, llavePrivada) {
 module.exports = {
   firmarXML,
   validarXMLBienFormado,
+  construirKeyInfoRSA,
 };
