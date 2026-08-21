@@ -9,7 +9,7 @@ const contribuyentesRouter = require('./modules/contribuyentes/router');
 app.use('/api/contribuyentes', contribuyentesRouter);
 app.use('/api/recuperacion-pin', require('./modules/recuperacion_pin/router'));
 app.use('/api/roles', require('./modules/roles/router'));
-
+app.use('/api/certificados', require('./modules/certificate/router'));
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.json({ mensaje: 'API de Firma Digital y Contribuyentes funcionando' });

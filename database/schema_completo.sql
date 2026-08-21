@@ -143,3 +143,84 @@ CREATE TABLE IF NOT EXISTS transacciones_cifrado (
 CREATE INDEX IF NOT EXISTS idx_transacciones_cifrado_id_contribuyente ON transacciones_cifrado(id_contribuyente);
 CREATE INDEX IF NOT EXISTS idx_transacciones_cifrado_fecha_hora       ON transacciones_cifrado(fecha_hora);
 COMMENT ON TABLE transacciones_cifrado IS 'Registro de cada operación de cifrado/descifrado de una llave privada en la bóveda del HSM simulado (exitosa o fallida). Administrada por el módulo /crypto.';
+
+-- ═══════════════════════════════════════════════════════════════
+-- Módulo de Autoridad Certificadora / PKI (Integrante 2 — /certificate)
+-- Ciclo de vida completo de los certificados digitales.
+-- ═══════════════════════════════════════════════════════════════
+
+-- Solicitud inicial de un contribuyente para obtener un certificado.
+CREATE TABLE IF NOT EXISTS solicitudes_certificado (
+    id_solicitud       SERIAL        PRIMARY KEY,
+    id_contribuyente   INTEGER       NOT NULL
+        REFERENCES contribuyentes(id_contribuyente) ON DELETE CASCADE,
+    estado             VARCHAR(20)   NOT NULL DEFAULT 'PENDIENTE'
+        CHECK (estado IN ('PENDIENTE', 'APROBADA', 'RECHAZADA')),
+    observaciones      VARCHAR(255),
+    fecha_solicitud    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+    fecha_resolucion   TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_solicitudes_certificado_id_contribuyente ON solicitudes_certificado(id_contribuyente);
+CREATE INDEX IF NOT EXISTS idx_solicitudes_certificado_estado          ON solicitudes_certificado(estado);
+COMMENT ON TABLE solicitudes_certificado IS 'Solicitudes de emisión de certificado digital hechas por un contribuyente. Administrada por el módulo /certificate.';
+
+-- El certificado digital ya emitido (equivalente simplificado a un X.509).
+CREATE TABLE IF NOT EXISTS certificados_digitales (
+    id_certificado        SERIAL        PRIMARY KEY,
+    id_contribuyente      INTEGER       NOT NULL
+        REFERENCES contribuyentes(id_contribuyente) ON DELETE CASCADE,
+    id_solicitud          INTEGER
+        REFERENCES solicitudes_certificado(id_solicitud),
+    numero_serie          VARCHAR(64)   NOT NULL UNIQUE,
+    llave_publica          TEXT          NOT NULL,
+    algoritmo               VARCHAR(30)   NOT NULL DEFAULT 'RSA-2048',
+    estado                   VARCHAR(20)   NOT NULL DEFAULT 'VIGENTE'
+        CHECK (estado IN ('VIGENTE', 'RENOVADO', 'REVOCADO', 'EXPIRADO')),
+    fecha_emision             TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+    fecha_expiracion           TIMESTAMPTZ   NOT NULL,
+    fecha_actualizacion         TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_certificados_id_contribuyente ON certificados_digitales(id_contribuyente);
+CREATE INDEX IF NOT EXISTS idx_certificados_numero_serie     ON certificados_digitales(numero_serie);
+CREATE INDEX IF NOT EXISTS idx_certificados_estado           ON certificados_digitales(estado);
+COMMENT ON TABLE certificados_digitales IS 'Certificados digitales emitidos a contribuyentes: serial único, llave pública (la privada vive cifrada en boveda_llaves_privadas, módulo /crypto), vigencia y estado actual. Administrada por el módulo /certificate.';
+
+-- Cada vez que un certificado se renueva se emite uno nuevo; esta tabla
+-- deja el vínculo explícito entre el certificado viejo y el nuevo.
+CREATE TABLE IF NOT EXISTS renovaciones (
+    id_renovacion             SERIAL        PRIMARY KEY,
+    id_certificado_anterior   INTEGER       NOT NULL
+        REFERENCES certificados_digitales(id_certificado),
+    id_certificado_nuevo      INTEGER       NOT NULL UNIQUE
+        REFERENCES certificados_digitales(id_certificado),
+    motivo                    VARCHAR(255),
+    fecha_renovacion          TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_renovaciones_id_certificado_anterior ON renovaciones(id_certificado_anterior);
+COMMENT ON TABLE renovaciones IS 'Historial de renovaciones: vincula cada certificado reemplazado (RENOVADO) con el certificado nuevo que lo sustituye. Administrada por el módulo /certificate.';
+
+-- Revocaciones (certificado dado de baja antes de su expiración natural).
+CREATE TABLE IF NOT EXISTS revocaciones (
+    id_revocacion       SERIAL        PRIMARY KEY,
+    id_certificado       INTEGER       NOT NULL UNIQUE
+        REFERENCES certificados_digitales(id_certificado),
+    motivo                VARCHAR(255)  NOT NULL,
+    fecha_revocacion       TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_revocaciones_id_certificado ON revocaciones(id_certificado);
+COMMENT ON TABLE revocaciones IS 'Revocaciones de certificados digitales (equivalente a una entrada de CRL): motivo y fecha. Administrada por el módulo /certificate.';
+
+-- Bitácora de todo cambio de estado de un certificado (auditoría de la
+-- máquina de estados completa: VIGENTE -> RENOVADO | REVOCADO | EXPIRADO).
+CREATE TABLE IF NOT EXISTS historial_estados (
+    id_historial         SERIAL        PRIMARY KEY,
+    id_certificado        INTEGER       NOT NULL
+        REFERENCES certificados_digitales(id_certificado) ON DELETE CASCADE,
+    estado_anterior        VARCHAR(20),
+    estado_nuevo            VARCHAR(20)   NOT NULL,
+    motivo                   VARCHAR(255),
+    fecha_cambio             TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_historial_estados_id_certificado ON historial_estados(id_certificado);
+CREATE INDEX IF NOT EXISTS idx_historial_estados_fecha_cambio   ON historial_estados(fecha_cambio);
+COMMENT ON TABLE historial_estados IS 'Bitácora de auditoría de cada transición de estado de un certificado digital. Administrada por el módulo /certificate.';
