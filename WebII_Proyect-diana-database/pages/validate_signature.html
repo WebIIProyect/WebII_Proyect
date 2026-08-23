@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Validar Firma - HSM Sign CR</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+
+  <body class="home-body">
+    <div class="hero-image-fade"></div>
+    <!-- HEADER ===================================================== -->
+    <!--
+      Nota: HEADER
+      - Contiene la navegación principal (brand, links y botón de regreso).
+      - No contiene lógica sensible; puede mantenerse estático o
+        extraerse a un include/partial en una app real.
+    -->
+     <header class="floating-header">
+      <nav class="navbar-pill">
+        <div class="brand-logo">HSM Sign CR</div>
+        <ul class="nav-links">
+          <li><a href="index.html"> Inicio </a></li>
+          <li><a href="information.html"> Información </a></li>
+        </ul>
+        <button
+          class="btn-auth-pill"
+          onclick="window.location.href = 'index.html'"
+        >
+          ← Regresar
+        </button>
+      </nav>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL ===================================================== -->
+    <!--
+      Nota: CONTENIDO PRINCIPAL
+      - Esta sección agrupa el hero y el validador de firmas.
+      - Dentro del contenedor principal está el formulario de validación
+        que actualmente usa una función de simulación `simularValidacion`.
+      - Marcaré claramente los elementos de UI que son simulación y los
+        puntos donde debe integrarse la validación real (server/HSM).
+    -->
+    <main class="main-content-home contact-main">
+      <div class="view-section active">
+        <div class="hero-text">
+          <h1>Validador de Firmas y Documentos</h1>
+          <p>
+            Comprueba la autenticidad e integridad de un documento firmado a
+            través de nuestra plataforma HSM.
+          </p>
+        </div>
+
+        <!-- CONTENEDOR DEL FORMULARIO DE VALIDACIÓN -->
+        <!--
+          Este bloque contiene el formulario que el usuario usa para:
+          1) pegar el hash de la firma (o sello),
+          2) subir el documento original.
+
+          Recomendación para implementación real:
+          - Validación criptográfica real debe realizarse en el servidor
+            o llamando a un servicio HSM autorizado, nunca en el cliente.
+          - El cliente puede calcular un hash localmente (opcional) para
+            enviar y comparar en el backend, pero la verificación final
+            (certificado, revocación, firma con clave privada) debe estar
+            en un entorno seguro.
+        -->
+        <div
+          class="auth-container"
+          style="
+            flex-direction: column;
+            height: auto;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 50px;
+          "
+        >
+          <div
+            class="auth-header"
+            style="text-align: center; margin-bottom: 30px"
+          >
+            <h2>Verificar Integridad</h2>
+            <p class="auth-desc mt-12">
+              Sube el documento original (XML o PDF) y pega el hash de la firma
+              digital. El sistema recalculará el algoritmo SHA-256 para
+              comprobar si el archivo ha sido alterado.
+            </p>
+          </div>
+
+          <div class="info-box-blue" style="margin-bottom: 30px">
+            <p class="info-box-blue-text">
+              <strong>Principio de Integridad:</strong> Si el documento sufrió
+              la más mínima modificación, como un cambio de monto, una letra
+              extra o incluso un espacio en blanco, la firma se romperá y será
+              reportada como inválida.
+            </p>
+          </div>
+
+          <!-- FORMULARIO -->
+          <!--
+            AVISO: Actualmente el formulario llama a `simularValidacion(event)`
+            que solo simula el proceso UX. Para implementar validación real:
+            - Reemplazar `onsubmit` por una llamada a `validarFirmaReal(event)`
+              o enviar `FormData` vía `fetch`/`axios` a un endpoint seguro.
+            - El endpoint deberá recibir: el archivo, el hash declarado y
+              devolver el resultado de verificación (firma válida, motivo,
+              datos del firmante, estado del certificado, timestamp, etc.).
+          -->
+          <form id="form-validador" onsubmit="validarFirmaReal(event)">
+            <!-- Campo: Subir Documento -->
+            <!--
+              Zona para subir el documento original que será verificado.
+              - UI: Drag & Drop + selector de archivo.
+              - Requisito real: enviar el archivo al backend (preferible con
+                FormData) y procesarlo en un servicio de verificación.
+              - Seguridad: validar extensiones y tamaños en frontend, y
+                repetir validaciones en el backend.
+            -->
+            <div class="input-group" style="margin-bottom: 30px">
+              <label
+                class="form-label"
+                style="
+                  display: block;
+                  margin-bottom: 8px;
+                  color: var(--color-text-light);
+                "
+              >
+                Documento firmado a validar (XML):
+              </label>
+
+              <!-- Zona de Drag & Drop -->
+              <!--
+                Simulación actual:
+                - El input file muestra el nombre seleccionado.
+                - No realiza cálculo de hash ni envío automático.
+
+                Punto de integración real:
+                - Añadir un handler que capture el archivo y lo envíe a
+                  `/api/verify-signature` (ejemplo) con FormData
+                  { file, declaredHash }.
+                - El backend debe:
+                  1) calcular hash del archivo (SHA-256 o según spec),
+                  2) verificar la firma con la llave pública del certificado,
+                  3) chequear revocación/estado del certificado (OCSP/CRL/HSM),
+                  4) devolver un JSON con detalles (valid, signerId, algo).
+              -->
+              <div
+                class="file-drop-area"
+                onclick="document.getElementById('archivoDocumento').click()"
+              >
+                <p>Haz clic aquí para seleccionar el archivo o arrástralo</p>
+                <input
+                  type="file"
+                  id="archivoDocumento"
+                  class="file-input-hidden"
+                  required
+                  onchange="mostrarNombreArchivo(this)"
+                />
+                <p
+                  id="nombreArchivo"
+                  style="
+                    margin-top: 10px;
+                    color: var(--color-primary);
+                    font-weight: bold;
+                  "
+                ></p>
+              </div>
+            </div>
+            <!-- Botón de Acción -->
+            <!--
+              Botón que en UX simula procesamiento. Reemplazar por:
+              - Disparador que deshabilite el botón, muestre spinner y
+                haga `fetch()` al endpoint de verificación.
+              - Resultado mostrado dinámicamente en el bloque de resultado.
+            -->
+            <button
+              type="submit"
+              class="btn-primary"
+              style="
+                width: 100%;
+                padding: 15px;
+                font-size: 1.1rem;
+                text-transform: uppercase;
+                font-weight: bold;
+              "
+            >
+              Ejecutar Validación Criptográfica
+            </button>
+          </form>
+
+          <!-- RESULTADO DE LA VALIDACIÓN (Oculto por defecto) -->
+          <!--
+            NOTA: Bloque de resultado con datos de ejemplo (SIMULACIÓN).
+            - En producción, este bloque debe llenarse con la respuesta
+              JSON del servicio de verificación.
+            - Campos esperados sugeridos en la respuesta real:
+              {
+                valid: boolean,
+                signerId: string,
+                algorithm: string,
+                signatureDate: string (ISO),
+                certificateStatus: 'ACTIVE'|'REVOKED'|'EXPIRED',
+                validationDetails: { ocsp: {}, crl: {}, policy: {} }
+              }
+            - Mostrar mensajes de error/razón cuando `valid:false`.
+          -->
+          <div id="resultadoValidacion" class="validation-result" style="display:none">
+            <h3 class="result-title"><span>✔</span> FIRMA VÁLIDA E ÍNTEGRA</h3>
+            <p style="color: #d4d4d4; font-size: 0.9rem; line-height: 1.5">
+              <!-- Este texto se actualizará dinámicamente con datos reales -->
+              El sello criptográfico coincide con el documento proporcionado.
+            </p>
+            <ul id="detalleResultado"
+              style="
+                color: var(--color-text);
+                font-size: 0.85rem;
+                margin-top: 15px;
+                list-style: none;
+                padding: 0;
+              "
+            >
+              <!-- Ejemplo de plantilla; reemplazar con datos del servicio -->
+              <li style="margin-bottom: 5px"><strong>Cédula Firmante:</strong> <span id="res-cedula">118230456</span></li>
+              <li style="margin-bottom: 5px"><strong>Algoritmo:</strong> <span id="res-alg">SHA256withRSA</span></li>
+              <li style="margin-bottom: 5px"><strong>Fecha de Firma (UTC):</strong> <span id="res-fecha">2026-08-19 14:30:00</span></li>
+              <li><strong>Estado del Certificado:</strong> <span id="res-cert">ACTIVO (No revocado)</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ===================================================== FOOTER ===================================================== -->
+    <footer class="minimal-footer editorial-footer">
+      <p>
+        © 2026 HSM Sign CR. Infraestructura PKI en la Nube. Haciendo la
+        tecnología legal accesible para todos.
+      </p>
+    </footer>
+
+    <!-- Script rápido para la demostración de UX -->
+    <script>
+      // Mostrar nombre de archivo seleccionado en la UI
+      function mostrarNombreArchivo(input) {
+        const nombreDisplay = document.getElementById("nombreArchivo");
+        if (input.files && input.files[0]) {
+          nombreDisplay.textContent =
+            "Archivo seleccionado: " + input.files[0].name;
+        } else {
+          nombreDisplay.textContent = "";
+        }
+      }
+
+      async function validarFirmaReal(event) {
+        event.preventDefault();
+        const form = document.getElementById('form-validador');
+        const boton = form.querySelector('button');
+        const archivo = document.getElementById('archivoDocumento').files[0];
+
+        if (!archivo) return alert('Seleccione el archivo XML firmado a validar.');
+
+        const originalText = boton.innerText;
+        try {
+          boton.disabled = true;
+          boton.innerText = 'Validando...';
+
+          const xmlFirmado = await archivo.text();
+
+          const res = await fetch('/api/documentos/validar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ xmlFirmado }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Error en la verificación');
+          }
+
+          const resultado = document.getElementById('resultadoValidacion');
+          document.getElementById('res-cedula').textContent = data.signerId || 'N/D';
+          document.getElementById('res-alg').textContent = data.algorithm || 'N/D';
+          document.getElementById('res-fecha').textContent = data.signatureDate || 'N/D';
+          document.getElementById('res-cert').textContent = data.certificateStatus || 'N/D';
+
+          if (data.esValida) {
+            resultado.querySelector('.result-title').innerHTML = '<span>✔</span> FIRMA VÁLIDA E ÍNTEGRA';
+          } else {
+            resultado.querySelector('.result-title').innerHTML = '<span>✖</span> FIRMA INVÁLIDA';
+            if (data.motivo) alert('Motivo: ' + data.motivo);
+          }
+          resultado.style.display = 'block';
+          resultado.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        } catch (err) {
+          alert('Error al validar: ' + (err.message || err));
+        } finally {
+          boton.disabled = false;
+          boton.innerText = originalText;
+        }
+      }
+    </script>
+  </body>
+</html>

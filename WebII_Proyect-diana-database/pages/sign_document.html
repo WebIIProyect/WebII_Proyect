@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firmar Documento - HSM Sign CR</title>
+    <link rel="stylesheet" href="/styles.css" />
+
+    <style>
+      /* Estilos para la zona de arrastrar y soltar */
+      .file-drop-area {
+        border: 2px dashed var(--color-border-input, #444);
+        border-radius: var(--radius-small, 8px);
+        padding: 40px 20px;
+        text-align: center;
+        background: var(--color-input, #1e1e1e);
+        cursor: pointer;
+        transition: border-color 0.3s;
+        margin-top: 10px;
+      }
+      .file-drop-area:hover {
+        border-color: var(--color-primary, #4caf50);
+      }
+      .file-drop-area p {
+        color: var(--color-text-light, #aaa);
+        font-size: 0.95rem;
+        margin: 0;
+      }
+      .file-input-hidden {
+        display: none;
+      }
+
+      /* Estilos para los inputs estándar */
+      .form-input {
+        width: 100%;
+        padding: 12px 15px;
+        background: var(--color-input, #1e1e1e);
+        border: 1px solid var(--color-border-input, #444);
+        color: white;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      .form-input:focus {
+        outline: none;
+        border-color: var(--color-primary, #4caf50);
+      }
+
+      /* Estilos para el resultado exitoso */
+      .success-result {
+        display: none; /* Oculto por defecto */
+        margin-top: 30px;
+        padding: 25px;
+        border-radius: var(--radius-small, 8px);
+        border: 1px solid #4caf50;
+        background: rgba(76, 175, 80, 0.1);
+        text-align: center;
+      }
+      .btn-download {
+        display: inline-block;
+        margin-top: 15px;
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+      .btn-download:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  
+  <body class="home-body">
+    <div class="hero-image-fade"></div>
+
+    <!--
+      HEADER =====================================================
+      Nota: HEADER
+      - Contiene la navegación principal (brand, links y botón de regreso).
+      - Es estático y puede extraerse a un include/partial en una app.
+    -->
+     <header class="floating-header">
+      <nav class="navbar-pill">
+        <div class="brand-logo">HSM Sign CR</div>
+        <ul class="nav-links">
+          <li><a href="index.html"> Inicio </a></li>
+          <li><a href="information.html"> Información </a></li>
+        </ul>
+        <button
+          class="btn-auth-pill"
+          onclick="window.location.href = 'index.html'"
+        >
+          ← Regresar
+        </button>
+      </nav>
+    </header>
+
+    <!--
+      CONTENIDO PRINCIPAL =====================================================
+      Nota: CONTENIDO PRINCIPAL
+      - Área principal para la funcionalidad de firma en la nube.
+      - El formulario actual `form-firma` usa `simularProcesoFirma` para
+        demostrar la UX. Añadiremos anotaciones y un esqueleto de
+        `firmarDocumentoReal` para integración con backend/HSM.
+    -->
+    <main class="main-content-home contact-main">
+      <div class="view-section active">
+        <div class="hero-text">
+          <h1>Firma de Documentos en la Nube</h1>
+          <p>
+            Aplica tu sello criptográfico utilizando tu llave privada almacenada
+            de forma segura en nuestro HSM.
+          </p>
+        </div>
+
+        <!-- CONTENEDOR DEL FORMULARIO DE FIRMA -->
+        <div
+          class="auth-container"
+          style="
+            flex-direction: column;
+            height: auto;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 40px 50px;
+          "
+        >
+          <div
+            class="auth-header"
+            style="text-align: center; margin-bottom: 25px"
+          >
+            <h2>Autorizar Firma Digital</h2>
+            <p class="auth-desc mt-12">
+              Ingresa tus credenciales para desencriptar temporalmente tu llave
+              privada y firmar el documento seleccionado.
+            </p>
+          </div>
+
+          <div class="info-box-light" style="margin-bottom: 30px">
+            <p class="info-box-text">
+              <strong>Seguridad HSM:</strong> Tu PIN no se almacena ni se
+              transmite en texto plano; se utiliza exclusivamente en este
+              momento para generar el hash que autoriza la firma dentro de la
+              bóveda criptográfica.
+            </p>
+          </div>
+
+          <!-- FORMULARIO -->
+          <!--
+            AVISO: Actualmente `onsubmit` invoca `simularProcesoFirma(event)`
+            para demo UX. Para firma real:
+            - Reemplazar por `onsubmit="firmarDocumentoReal(event)"`
+              o enlazar la función en script cuando exista el backend.
+            - El backend esperado recibirá FormData { file, cedula, pin }
+              y realizará la operación de firma en el HSM.
+          -->
+          <form id="form-firma" onsubmit="firmarDocumentoReal(event)">
+            <!-- Campo: Cédula -->
+            <div class="input-group" style="margin-bottom: 20px">
+              <label
+                class="form-label"
+                for="cedula"
+                style="
+                  display: block;
+                  margin-bottom: 8px;
+                  color: var(--color-text-light);
+                "
+              >
+                Identificación (Cédula Física o Jurídica):
+              </label>
+              <input
+                type="text"
+                id="cedula"
+                class="form-input"
+                placeholder="Ej. 118230456"
+                required
+              />
+            </div>
+
+            <!-- Campo: PIN de Firma -->
+            <div class="input-group" style="margin-bottom: 25px">
+              <label
+                class="form-label"
+                for="pinFirma"
+                style="
+                  display: block;
+                  margin-bottom: 8px;
+                  color: var(--color-text-light);
+                "
+              >
+                PIN de Firma (Clave de autorización):
+              </label>
+              <input
+                type="password"
+                id="pinFirma"
+                class="form-input"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <!-- Campo: Subir Documento -->
+            <!--
+              Zona de carga/drag & drop del documento que será firmado.
+              - UI actual muestra nombre de archivo y no envía nada.
+              - Punto de integración real: enviar `archivoFirmar`, `cedula`
+                y `pin` al endpoint de firma (ej. POST /api/sign-document).
+              - No almacenar el pin en frontend, solo transmitir por TLS y
+                eliminarlo de la memoria inmediatamente después de usarlo.
+            -->
+            <div class="input-group" style="margin-bottom: 30px">
+              <label
+                class="form-label"
+                style="
+                  display: block;
+                  margin-bottom: 8px;
+                  color: var(--color-text-light);
+                "
+              >
+                Documento a firmar (XML):
+              </label>
+
+              <!-- Zona de Drag & Drop -->
+              <div
+                class="file-drop-area"
+                onclick="document.getElementById('archivoFirmar').click()"
+              >
+                <p>Haz clic aquí para seleccionar tu factura XML</p>
+                <input
+                  type="file"
+                  id="archivoFirmar"
+                  class="file-input-hidden"
+                  accept=".xml,text/xml,application/xml"
+                  required
+                  onchange="mostrarNombreArchivo(this)"
+                />
+                <p
+                  id="nombreArchivo"
+                  style="
+                    margin-top: 10px;
+                    color: var(--color-primary);
+                    font-weight: bold;
+                  "
+                ></p>
+              </div>
+            </div>
+
+            <!-- Botón de Acción -->
+            <button
+              type="submit"
+              id="btnSumbitFirma"
+              class="btn-primary"
+              style="
+                width: 100%;
+                padding: 15px;
+                font-size: 1.1rem;
+                text-transform: uppercase;
+                font-weight: bold;
+              "
+            >
+              Firmar Documento
+            </button>
+          </form>
+
+          <!-- RESULTADO EXITOSO (Oculto por defecto) -->
+          <!--
+            Bloque de resultado (simulación).
+            - En producción, rellenar este bloque con la respuesta del
+              servicio de firma que debe incluir al menos:
+              { success: boolean, signedFileUrl: string, signatureHash: string }
+            - Proveer enlaces seguros para descargar el documento firmado
+              y limpiar cualquier dato sensible en memoria al finalizar.
+          -->
+          <div id="resultadoFirma" class="success-result">
+            <h3 style="color: #4caf50; font-size: 1.3rem; margin-bottom: 10px">
+              ✔ Documento Firmado Exitosamente
+            </h3>
+            <p
+              style="
+                color: #d4d4d4;
+                font-size: 0.95rem;
+                line-height: 1.5;
+                margin-bottom: 15px;
+              "
+            >
+              El sello criptográfico (SHA-256/RSA) ha sido incrustado en el
+              documento. La llave privada ha sido bloqueada nuevamente en el
+              HSM.
+            </p>
+
+            <div
+              style="
+                background: rgba(0, 0, 0, 0.3);
+                padding: 10px;
+                border-radius: 4px;
+                font-family: monospace;
+                color: #888;
+                font-size: 0.8rem;
+                word-break: break-all;
+                margin-bottom: 15px;
+              "
+            >
+              Hash de firma generado:<br />
+              <span id="hashFirmaGenerado" style="color: #aaa"></span>
+            </div>
+
+            <a
+              href="#"
+              id="downloadSigned"
+              class="btn-download"
+              download="documento-firmado.xml"
+            >
+              ⬇ Descargar Documento Firmado
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER ===================================================== -->
+    <footer class="minimal-footer editorial-footer">
+      <p>
+        © 2026 HSM Sign CR. Infraestructura PKI en la Nube. Haciendo la
+        tecnología legal accesible para todos.
+      </p>
+    </footer>
+
+    <!-- Script para la simulación del proceso de firma -->
+    <script>
+      // Mostrar nombre de archivo seleccionado en la UI
+      function mostrarNombreArchivo(input) {
+        const nombreDisplay = document.getElementById("nombreArchivo");
+        if (input.files && input.files[0]) {
+          nombreDisplay.textContent = "Archivo cargado: " + input.files[0].name;
+        } else {
+          nombreDisplay.textContent = "";
+        }
+      }
+
+      async function firmarDocumentoReal(event) {
+        event.preventDefault();
+        const boton = document.getElementById('btnSumbitFirma');
+        const archivo = document.getElementById('archivoFirmar').files[0];
+        const identificacion = document.getElementById('cedula').value.trim();
+        const pin = document.getElementById('pinFirma').value;
+
+        if (!archivo) return alert('Seleccione un archivo XML para firmar.');
+        if (!identificacion) return alert('Proporcione su identificación.');
+        if (!pin) return alert('Ingrese su PIN de firma.');
+        if (!archivo.name.toLowerCase().endsWith('.xml')) {
+          return alert('Solo se pueden firmar documentos XML (facturas electrónicas). Este sistema no firma PDF ni otros formatos.');
+        }
+
+        const originalText = boton.innerText;
+        try {
+          boton.disabled = true;
+          boton.innerText = 'Firmando...';
+
+          const xmlFactura = await archivo.text();
+          if (!xmlFactura.trim().startsWith('<')) {
+            throw new Error('El archivo seleccionado no parece ser un XML válido.');
+          }
+
+          const res = await fetch('/api/documentos/firmar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identificacion, pin, xmlFactura }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Error al firmar el documento');
+          }
+
+          document.getElementById('hashFirmaGenerado').textContent = data.hashDocumento;
+
+          const blob = new Blob([data.xmlFirmado], { type: 'application/xml' });
+          const downloadLink = document.getElementById('downloadSigned');
+          downloadLink.href = URL.createObjectURL(blob);
+
+          document.getElementById('form-firma').style.display = 'none';
+          const resultado = document.getElementById('resultadoFirma');
+          resultado.style.display = 'block';
+          resultado.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (err) {
+          alert('Error al firmar: ' + (err.message || err));
+        } finally {
+          boton.disabled = false;
+          boton.innerText = originalText;
+        }
+      }
+    </script>
+  </body>
+</html>
