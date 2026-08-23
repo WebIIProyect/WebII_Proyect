@@ -40,12 +40,12 @@ Antes de poder firmar nada, la persona/empresa dueña del documento debe:
 
 Si tu sistema ya tiene sus propios usuarios, dos formas de resolverlo:
 
-- **Opción A (recomendada):** que cada usuario se registre una sola vez
+- **Opción A :** que cada usuario se registre una sola vez
   en HSM Sign CR (vía `pages/register.html` o `POST /api/contribuyentes`)
   y obtenga su certificado antes de que tu sistema intente firmar nada
   a su nombre. Tu sistema solo necesita guardarse su `identificacion`
   (cédula/DIMEX) para poder pedir firmas después.
-- **Opción B:** tu backend llama directamente a `POST
+- **Opción B(recomendada):** tu backend llama directamente a `POST
   /api/contribuyentes` para registrar al usuario, y coordina con el
   equipo de HSM Sign CR para que se active la cuenta y se emita el
   certificado (ver paso 4 del flujo abajo). Útil si quieres automatizar
